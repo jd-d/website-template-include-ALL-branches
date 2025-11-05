@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>OTC Flow Regression Tests</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin: 2.5rem;
+        line-height: 1.6;
+        max-width: 900px;
+      }
+
+      h1 {
+        margin-bottom: 0.5rem;
+      }
+
+      .instructions {
+        margin-bottom: 1.5rem;
+      }
+
+      ul {
+        padding-left: 1.5rem;
+      }
+
+      li {
+        margin-bottom: 0.35rem;
+        font-weight: 600;
+      }
+
+      .pass {
+        color: #1b7c1b;
+      }
+
+      .fail {
+        color: #b00020;
+      }
+
+      #summary {
+        font-size: 1.1rem;
+        font-weight: 700;
+      }
+
+      details {
+        margin-top: 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>OTC Flow Regression Tests</h1>
+    <p class="instructions">
+      Serve the repository root with a static server (for example `npx http-server`) and open this file from
+      `http://localhost`. The harness fetches `index.html`, checks for critical UI components, and reports results below and in
+      the browser console.
+    </p>
+    <p id="summary">Running tests…</p>
+    <ul id="results" aria-live="polite"></ul>
+    <details>
+      <summary>Debug log</summary>
+      <pre id="debug-log"></pre>
+    </details>
+    <script>
+      const tests = [];
+      const summaryEl = document.getElementById('summary');
+      const resultsList = document.getElementById('results');
+      const debugLog = document.getElementById('debug-log');
+      const logLines = [];
+      let cachedIndexDocPromise = null;
+
+      function addTest(name, fn) {
+        tests.push({ name, fn });
+      }
+
+      function appendLog(message) {
+        logLines.push(message);
+        debugLog.textContent = logLines.join('\n');
+      }
+
+      async function loadIndexDocument() {
+        if (!cachedIndexDocPromise) {
+          const indexUrl = new URL('../index.html', window.location.href);
+          cachedIndexDocPromise = fetch(indexUrl)
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`Failed to load index.html (status ${response.status})`);
+              }
+              return response.text();
+            })
+            .then((htmlText) => {
+              const parser = new DOMParser();
+              return parser.parseFromString(htmlText, 'text/html');
+            })
+            .catch((error) => {
+              if (error instanceof TypeError) {
+                throw new Error(
+                  'Unable to load index.html. Serve the repository over HTTP (for example with `npx http-server`) before running these tests.'
+                );
+              }
+              throw error;
+            });
+        }
+
+        return cachedIndexDocPromise;
+      }
+
+      addTest('index.html exposes the expected hero heading and description', async () => {
+        const doc = await loadIndexDocument();
+        const heroHeading = doc.querySelector('#hero-title');
+        if (!heroHeading) {
+          throw new Error('Missing hero title element with id "hero-title".');
+        }
+        const text = heroHeading.textContent.trim();
+        if (text !== 'OTC Flow - UK Community Pharmacy Decision Support') {
+          throw new Error(`Unexpected hero title text: "${text}".`);
+        }
+        const metaDescription = doc.querySelector('meta[name="description"]');
+        if (!metaDescription) {
+          throw new Error('Missing meta description tag.');
+        }
+        const descriptionContent = (metaDescription.getAttribute('content') || '').toLowerCase();
+        if (!descriptionContent.includes('decision support')) {
+          throw new Error('Meta description should mention decision support.');
+        }
+      });
+
+      addTest('core intake and decision elements are present', async () => {
+        const doc = await loadIndexDocument();
+        const requiredSelectors = ['#complaint-select', '#rule-pack-select', '#intake-sections', '#decision-card'];
+        for (const selector of requiredSelectors) {
+          if (!doc.querySelector(selector)) {
+            throw new Error(`Missing expected element ${selector}.`);
+          }
+        }
+        const documentation = doc.querySelector('#documentation-output');
+        if (!documentation || documentation.tagName !== 'TEXTAREA') {
+          throw new Error('Missing consultation documentation textarea.');
+        }
+      });
+
+      addTest('rule library and governance metadata render correctly', async () => {
+        const doc = await loadIndexDocument();
+        const ruleHeading = doc.querySelector('#rule-pack-heading');
+        if (!ruleHeading) {
+          throw new Error('Missing rule library heading.');
+        }
+        if (!doc.querySelector('#rule-pack-details')) {
+          throw new Error('Missing rule pack details container.');
+        }
+        const governanceSummary = doc.querySelector('#governance-summary');
+        if (!governanceSummary) {
+          throw new Error('Missing governance summary placeholder.');
+        }
+      });
+
+      addTest('page loads the OTC tool module', async () => {
+        const doc = await loadIndexDocument();
+        const script = Array.from(doc.querySelectorAll('script[type="module"]')).find((node) => {
+          return (node.getAttribute('src') || '').includes('assets/js/otc-tool.js');
+        });
+        if (!script) {
+          throw new Error('Missing module script for assets/js/otc-tool.js.');
+        }
+      });
+
+      async function run() {
+        const results = [];
+        for (const test of tests) {
+          try {
+            appendLog(`Running: ${test.name}`);
+            await test.fn();
+            results.push({ name: test.name, status: 'pass' });
+          } catch (error) {
+            appendLog(`❌ ${test.name}: ${error.message}`);
+            results.push({ name: test.name, status: 'fail', error });
+          }
+        }
+
+        const failures = results.filter((result) => result.status === 'fail');
+        summaryEl.textContent = failures.length === 0 ? 'All tests passed.' : `${failures.length} test(s) failed.`;
+        resultsList.innerHTML = '';
+        for (const result of results) {
+          const li = document.createElement('li');
+          li.textContent = result.name;
+          li.className = result.status === 'pass' ? 'pass' : 'fail';
+          resultsList.appendChild(li);
+        }
+
+        if (failures.length > 0) {
+          console.error('Some OTC Flow regression tests failed.', failures);
+        } else {
+          console.log('All OTC Flow regression tests passed.');
+        }
+      }
+
+      run().catch((error) => {
+        summaryEl.textContent = 'Test harness failed.';
+        appendLog(error.message);
+        console.error(error);
+      });
+    </script>
+  </body>
+</html>

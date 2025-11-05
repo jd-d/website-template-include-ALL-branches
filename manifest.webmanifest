@@ -1,0 +1,21 @@
+{
+  "name": "OTC Flow Decision Support",
+  "short_name": "OTC Flow",
+  "description": "Interactive Pharmacy First and OTC decision support with deterministic rule packs and safety netting.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f7f8fb",
+  "theme_color": "#1f3c88",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

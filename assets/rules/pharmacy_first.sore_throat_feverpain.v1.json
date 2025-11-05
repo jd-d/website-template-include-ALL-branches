@@ -1,0 +1,305 @@
+{
+  "meta": {
+    "id": "sore_throat_feverpain",
+    "name": "Sore throat (FeverPAIN score)",
+    "version": "1.1.0",
+    "effectiveFrom": "2025-03-01",
+    "lastReviewed": "2025-03-05",
+    "jurisdiction": "England",
+    "service": "Pharmacy First"
+  },
+  "complaint": {
+    "id": "sore_throat",
+    "label": "Sore throat"
+  },
+  "description": "FeverPAIN pathway for acute sore throat in patients aged 5 years and over, aligned to Pharmacy First England.",
+  "inclusion": [
+    "Age 5 years and above with acute sore throat or tonsillitis symptoms for 10 days or fewer.",
+    "No features suggesting severe sepsis, airway compromise, or peritonsillar abscess.",
+    "Able to take Phenoxymethylpenicillin or an alternative if indicated."
+  ],
+  "exclusion": [
+    "Difficulty breathing, drooling, stridor, or severe dysphagia.",
+    "Immunocompromise, post-transplant status, or intensive chemotherapy.",
+    "Recurrent quinsy, scarlet fever outbreak, or sore throat lasting more than 10 days.",
+    "Immediate hospital referral required for suspected epiglottitis or severe systemic illness."
+  ],
+  "safetyNetting": [
+    "Seek urgent help if breathing becomes difficult, stridor develops, or unable to swallow fluids.",
+    "Consult GP or urgent care if symptoms worsen after 48 hours of treatment or persist beyond 1 week.",
+    "Return sooner if a rash, ear pain, or swelling develops."
+  ],
+  "sections": [
+    {
+      "id": "red-flags",
+      "title": "Red flags",
+      "questions": [
+        { "id": "airwayCompromise", "type": "boolean", "label": "Airway compromise, drooling, or stridor", "required": false, "flagType": "red" },
+        { "id": "systemicallyUnwell", "type": "boolean", "label": "Systemically very unwell", "required": false, "flagType": "red" },
+        { "id": "immunocompromise", "type": "boolean", "label": "Known immunocompromise", "required": false }
+      ]
+    },
+    {
+      "id": "feverpain",
+      "title": "FeverPAIN criteria",
+      "questions": [
+        { "id": "fever", "type": "boolean", "label": "Fever in the last 24 hours", "required": true },
+        { "id": "purulence", "type": "boolean", "label": "Purulence or tonsillar exudate", "required": true },
+        { "id": "rapidOnset", "type": "boolean", "label": "Severe symptoms within 3 days", "required": true },
+        { "id": "inflamedTonsils", "type": "boolean", "label": "Severely inflamed tonsils", "required": true },
+        { "id": "noCough", "type": "boolean", "label": "No cough or coryza", "required": true }
+      ]
+    },
+    {
+      "id": "history",
+      "title": "History",
+      "questions": [
+        {
+          "id": "durationDays",
+          "type": "number",
+          "label": "Symptom duration (days)",
+          "min": 0,
+          "max": 30,
+          "required": true
+        },
+        { "id": "previousStrep", "type": "boolean", "label": "Scarlet fever or positive strep test in last 30 days", "required": false },
+        {
+          "id": "antibioticAllergy",
+          "type": "select",
+          "label": "Penicillin allergy",
+          "options": [
+            { "value": "no", "label": "No" },
+            { "value": "yes", "label": "Yes" },
+            { "value": "unknown", "label": "Unknown" }
+          ],
+          "required": false
+        }
+      ]
+    }
+  ],
+  "intake": {
+    "required": {
+      "patient": ["age"],
+      "answers": ["fever", "purulence", "rapidOnset", "inflamedTonsils", "noCough", "durationDays"]
+    }
+  },
+  "logic": {
+    "derived": [
+      {
+        "id": "feverpainScore",
+        "expression": {
+          "+": [
+            { "if": [ { "==": [ { "var": "answers.fever" }, true ] }, 1, 0 ] },
+            { "if": [ { "==": [ { "var": "answers.purulence" }, true ] }, 1, 0 ] },
+            { "if": [ { "==": [ { "var": "answers.rapidOnset" }, true ] }, 1, 0 ] },
+            { "if": [ { "==": [ { "var": "answers.inflamedTonsils" }, true ] }, 1, 0 ] },
+            { "if": [ { "==": [ { "var": "answers.noCough" }, true ] }, 1, 0 ] }
+          ]
+        }
+      }
+    ],
+    "checks": [
+      {
+        "id": "age_range",
+        "description": "Age 5 years or older",
+        "expression": { ">=": [ { "var": "patient.age" }, 5 ] },
+        "pass": { "status": "pass", "label": "Age 5 years or older." },
+        "fail": {
+          "status": "fail",
+          "label": "Pharmacy First sore throat pathway is for age ≥5 years.",
+          "result": {
+            "outcome": "refer",
+            "urgency": "routine",
+            "headline": "Refer - patient under 5 years old",
+            "summary": "Outside scope of Pharmacy First sore throat service.",
+            "actions": ["Arrange GP or paediatric assessment."]
+          }
+        }
+      },
+      {
+        "id": "duration_within_range",
+        "description": "Symptoms for 10 days or fewer",
+        "expression": {
+          "or": [
+            { "!": { "var": "answers.durationDays" } },
+            { "<=": [ { "var": "answers.durationDays" }, 10 ] }
+          ]
+        },
+        "pass": { "status": "pass", "label": "Duration recorded as {{answers.durationDays}} day(s)." },
+        "fail": {
+          "status": "fail",
+          "label": "Symptoms present for more than 10 days.",
+          "result": {
+            "outcome": "refer",
+            "urgency": "routine",
+            "headline": "Refer - duration exceeds 10 days",
+            "summary": "Persistent sore throat should be assessed by GP.",
+            "actions": ["Arrange GP follow-up for persistent symptoms."]
+          }
+        }
+      }
+    ],
+    "advice": [
+      {
+        "id": "previous_strep",
+        "expression": { "==": [ { "var": "answers.previousStrep" }, true ] },
+        "warnings": ["Contact GP - repeat infection within 30 days."],
+        "trace": { "status": "warn", "label": "Scarlet fever or positive strep within 30 days." }
+      },
+      {
+        "id": "allergy_unknown",
+        "expression": { "==": [ { "var": "answers.antibioticAllergy" }, null ] },
+        "warnings": ["Clarify penicillin allergy status before supply."],
+        "trace": { "status": "warn", "label": "Penicillin allergy status unknown." }
+      }
+    ],
+    "outcomes": [
+      {
+        "id": "urgent_red_flags",
+        "description": "Urgent red flag symptoms",
+        "expression": {
+          "or": [
+            { "==": [ { "var": "answers.airwayCompromise" }, true ] },
+            { "==": [ { "var": "answers.systemicallyUnwell" }, true ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "fail", "label": "Red flag symptom identified - escalate immediately." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "urgent",
+          "headline": "Urgent referral - red flag symptoms identified",
+          "summary": "Urgent medical review required due to airway or sepsis concerns.",
+          "actions": ["Call 999 or arrange urgent medical review."],
+          "referral": {
+            "destination": "Urgent care / A&E",
+            "reason": "Urgent red flag symptoms"
+          }
+        }
+      },
+      {
+        "id": "immunocompromise",
+        "description": "Immunocompromise present",
+        "expression": { "==": [ { "var": "answers.immunocompromise" }, true ] },
+        "trace": {
+          "pass": { "status": "fail", "label": "Immunocompromised patient - refer to GP." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "routine",
+          "headline": "Refer - immunocompromise is an exclusion",
+          "summary": "Requires medical assessment due to immunocompromise.",
+          "actions": ["Arrange GP review and document rationale."]
+        }
+      },
+      {
+        "id": "low_score",
+        "description": "FeverPAIN score 0 to 1",
+        "expression": { "<=": [ { "var": "derived.feverpainScore" }, 1 ] },
+        "trace": {
+          "pass": { "status": "pass", "label": "FeverPAIN score {{derived.feverpainScore}}." }
+        },
+        "result": {
+          "outcome": "advice",
+          "urgency": "routine",
+          "headline": "Self-care advice - FeverPAIN score 0 to 1",
+          "summary": "Antibiotics not indicated. Provide safety netting and OTC analgesia advice.",
+          "actions": [
+            "Offer self-care advice including fluids, rest, and simple analgesia.",
+            "Reassure that symptoms usually settle within 1 week."
+          ]
+        }
+      },
+      {
+        "id": "moderate_score",
+        "description": "FeverPAIN score 2 to 3",
+        "expression": {
+          "and": [
+            { ">=": [ { "var": "derived.feverpainScore" }, 2 ] },
+            { "<=": [ { "var": "derived.feverpainScore" }, 3 ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "warn", "label": "FeverPAIN score {{derived.feverpainScore}} - consider delayed prescription." }
+        },
+        "result": {
+          "outcome": "advice",
+          "urgency": "routine",
+          "headline": "Consider delayed antibiotic - FeverPAIN score 2 to 3",
+          "summary": "Discuss safety netting and provide delayed prescription if clinically appropriate.",
+          "actions": [
+            "Consider issuing a delayed antibiotic prescription if symptoms worsen.",
+            "Provide self-care advice and throat lozenges or spray if appropriate."
+          ]
+        }
+      },
+      {
+        "id": "high_score_allergy",
+        "description": "FeverPAIN score ≥4 with penicillin allergy",
+        "expression": {
+          "and": [
+            { ">=": [ { "var": "derived.feverpainScore" }, 4 ] },
+            { "==": [ { "var": "answers.antibioticAllergy" }, "yes" ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "pass", "label": "FeverPAIN score {{derived.feverpainScore}} with penicillin allergy." }
+        },
+        "result": {
+          "outcome": "supply",
+          "urgency": "routine",
+          "headline": "Supply Clarithromycin for 5 days",
+          "summary": "FeverPAIN score ≥4 - antibiotics recommended to shorten illness duration.",
+          "actions": [
+            "Supply Clarithromycin 250 mg twice daily for 5 days (adjust paediatric dosing).",
+            "Provide written safety-netting advice and advise on infection control."
+          ],
+          "supply": {
+            "product": "Clarithromycin 250 mg tablets or suspension",
+            "dosage": "Take 250 mg twice daily for 5 days (adjust for age/weight)",
+            "notes": "Confirm ability to swallow tablets or supply appropriate suspension."
+          }
+        }
+      },
+      {
+        "id": "high_score_no_allergy",
+        "description": "FeverPAIN score ≥4 without penicillin allergy",
+        "expression": {
+          "and": [
+            { ">=": [ { "var": "derived.feverpainScore" }, 4 ] },
+            { "!=": [ { "var": "answers.antibioticAllergy" }, "yes" ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "pass", "label": "FeverPAIN score {{derived.feverpainScore}} - supply penicillin." }
+        },
+        "result": {
+          "outcome": "supply",
+          "urgency": "routine",
+          "headline": "Supply Phenoxymethylpenicillin for 5 days",
+          "summary": "FeverPAIN score ≥4 - antibiotics recommended to shorten illness duration.",
+          "actions": [
+            "Supply Phenoxymethylpenicillin 500 mg four times daily for 5 days (child doses weight adjusted).",
+            "Provide written safety-netting advice and advise on infection control."
+          ],
+          "supply": {
+            "product": "Phenoxymethylpenicillin tablets or oral solution",
+            "dosage": "Take 500 mg four times daily for 5 days (adjust for age/weight)",
+            "notes": "Check ability to swallow tablets or provide suspension as needed."
+          }
+        }
+      }
+    ],
+    "default": {
+      "trace": { "status": "info", "label": "No outcome matched." },
+      "result": {
+        "outcome": "incomplete",
+        "urgency": "routine",
+        "headline": "Unable to determine recommendation",
+        "summary": "Additional clinical input required.",
+        "actions": []
+      }
+    }
+  }
+}

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>NLP Parser Regression Tests</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin: 2.5rem;
+        line-height: 1.6;
+        max-width: 960px;
+      }
+
+      h1 {
+        margin-bottom: 0.5rem;
+      }
+
+      .instructions {
+        margin-bottom: 1.5rem;
+      }
+
+      ol {
+        padding-left: 1.5rem;
+      }
+
+      li {
+        margin-bottom: 0.4rem;
+      }
+
+      .pass {
+        color: #1b7c1b;
+        font-weight: 600;
+      }
+
+      .fail {
+        color: #b00020;
+        font-weight: 600;
+      }
+
+      details {
+        margin-top: 0.75rem;
+      }
+
+      pre {
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>NLP Parser Regression Tests</h1>
+    <section class="instructions" aria-labelledby="manual-title">
+      <h2 id="manual-title">Manual verification</h2>
+      <p>
+        Serve the repository root with a static server (for example <code>npx http-server</code>), then follow these steps after
+        reviewing the automated results below.
+      </p>
+      <ol>
+        <li>Confirm every sample transcript passes the checks displayed on this page.</li>
+        <li>Open <code>index.html</code>, paste each sample transcript into the Consultation transcript textarea, and verify suggestions update as expected.</li>
+        <li>Toggle a suggestion between applied and dismissed states to ensure UI feedback loops still operate.</li>
+      </ol>
+    </section>
+    <p id="summary">Running transcript assertions…</p>
+    <ul id="results" aria-live="polite"></ul>
+    <details open>
+      <summary>Debug log</summary>
+      <pre id="debug-log"></pre>
+    </details>
+    <script type="module">
+      import { parseTranscript, SAMPLE_TRANSCRIPTS } from '../assets/js/otc/nlp-parser.js';
+
+      const summaryEl = document.getElementById('summary');
+      const resultsList = document.getElementById('results');
+      const debugLog = document.getElementById('debug-log');
+      const logLines = [];
+
+      function appendLog(message) {
+        const time = new Date().toISOString();
+        logLines.push(`[${time}] ${message}`);
+        debugLog.textContent = logLines.join('\n');
+      }
+
+      function formatMismatch(label, expected, actual) {
+        return `${label}: expected "${expected}", received "${actual ?? 'undefined'}".`;
+      }
+
+      function checkPatientField(parsed, expectedPatient, field, label) {
+        if (!(field in expectedPatient)) {
+          return null;
+        }
+        const actual = parsed?.patient?.[field]?.value;
+        if (actual !== expectedPatient[field]) {
+          return formatMismatch(label, expectedPatient[field], actual);
+        }
+        return null;
+      }
+
+      function checkAnswers(parsed, expectedAnswers) {
+        const mismatches = [];
+        for (const [questionId, expectedValue] of Object.entries(expectedAnswers || {})) {
+          const actualAnswer = parsed.answers?.[questionId];
+          const actualValue = actualAnswer ? actualAnswer.value : undefined;
+          if (actualValue !== expectedValue) {
+            mismatches.push(formatMismatch(`Answer for ${questionId}`, expectedValue, actualValue));
+          }
+        }
+        return mismatches;
+      }
+
+      function evaluateSample(sample) {
+        appendLog(`Evaluating sample: ${sample.id}`);
+        const result = parseTranscript(sample.text);
+        const issues = [];
+        const expected = sample.expected || {};
+
+        if (expected.complaintId && result.complaintId !== expected.complaintId) {
+          issues.push(formatMismatch('Complaint', expected.complaintId, result.complaintId));
+        }
+        if (expected.rulePackId && result.rulePackId !== expected.rulePackId) {
+          issues.push(formatMismatch('Rule pack', expected.rulePackId, result.rulePackId));
+        }
+
+        const patientChecks = [
+          checkPatientField(result, expected.patient || {}, 'age', 'Patient age'),
+          checkPatientField(result, expected.patient || {}, 'sex', 'Patient sex'),
+          checkPatientField(result, expected.patient || {}, 'pregnant', 'Pregnancy status')
+        ].filter(Boolean);
+        issues.push(...patientChecks);
+        issues.push(...checkAnswers(result, expected.answers));
+
+        return {
+          status: issues.length === 0 ? 'pass' : 'fail',
+          issues,
+          parsed: result
+        };
+      }
+
+      function renderResult(sample, evaluation) {
+        const item = document.createElement('li');
+        item.className = evaluation.status === 'pass' ? 'pass' : 'fail';
+        item.textContent = `${evaluation.status === 'pass' ? '✅' : '❌'} ${sample.id}: ${sample.description}`;
+
+        if (evaluation.status === 'fail') {
+          const details = document.createElement('details');
+          details.open = true;
+          const summary = document.createElement('summary');
+          summary.textContent = 'View mismatches';
+          details.appendChild(summary);
+          const list = document.createElement('ul');
+          for (const issue of evaluation.issues) {
+            const li = document.createElement('li');
+            li.textContent = issue;
+            list.appendChild(li);
+          }
+          details.appendChild(list);
+          const parsedBlock = document.createElement('pre');
+          parsedBlock.textContent = JSON.stringify(evaluation.parsed, null, 2);
+          details.appendChild(parsedBlock);
+          item.appendChild(details);
+        }
+
+        resultsList.appendChild(item);
+      }
+
+      async function run() {
+        const evaluations = SAMPLE_TRANSCRIPTS.map((sample) => evaluateSample(sample));
+        const failures = evaluations.filter((evaluation) => evaluation.status === 'fail');
+
+        summaryEl.textContent =
+          failures.length === 0
+            ? 'All transcript assertions passed.'
+            : `${failures.length} transcript assertion(s) failed. Check details below.`;
+
+        SAMPLE_TRANSCRIPTS.forEach((sample, index) => {
+          renderResult(sample, evaluations[index]);
+        });
+
+        if (failures.length === 0) {
+          appendLog('All transcript assertions passed.');
+          console.log('NLP parser tests passed.', evaluations);
+        } else {
+          appendLog(`${failures.length} transcript assertion(s) failed.`);
+          console.error('NLP parser tests failed.', evaluations);
+        }
+      }
+
+      run().catch((error) => {
+        summaryEl.textContent = 'Test harness encountered a fatal error. See log for details.';
+        appendLog(error.message);
+        console.error(error);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,18 @@
+Manual Playwright verification (`browser_container.run_playwright_script`):
+- errors []
+- collapsed True
+- slider_val 25.0
+- tooltip_visible True
+- tooltip_text Displayed before amounts.
+- tooltip_count 0
+
+2025-11-02 OTC self-care smoke test:
+- Served the static site with `python -m http.server 8000` (npm-hosted `http-server` was blocked by registry policy).
+- Loaded the `OTC - Cold relief supply`, `OTC - Diarrhoea rehydration`, and `OTC - Macrogol plan` scenarios to confirm multi-select intake controls populate correctly and produce the expected supply or referral outcomes.
+- Observed the rule library panel now lists an "Intake structure" summary for each pack and reflected multi-select question types.
+- Confirmed manifest signature verification succeeded in-browser (no console errors while loading signed packs).
+
+2025-11-02 Mobile overflow regression check:
+- Served the static site locally with `python -m http.server 8000` and loaded it in a Playwright iPhone 12 viewport.
+- Confirmed `overflow-x` reports `hidden` for both `html` and `body` and the document `scrollWidth` equals the viewport width, eliminating lateral panning.
+- Verified vertical scrolling remains available (`scrollHeight` exceeded the viewport height), ensuring normal page progression on mobile.

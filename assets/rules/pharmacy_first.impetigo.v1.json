@@ -1,0 +1,282 @@
+{
+  "meta": {
+    "id": "impetigo",
+    "name": "Impetigo",
+    "version": "1.0.0",
+    "effectiveFrom": "2025-03-01",
+    "lastReviewed": "2025-03-20",
+    "jurisdiction": "England",
+    "service": "Pharmacy First"
+  },
+  "complaint": {
+    "id": "skin_infection",
+    "label": "Skin infection"
+  },
+  "description": "Pharmacy First pathway for non-bullous and bullous impetigo management in community pharmacy.",
+  "inclusion": [
+    "Patients aged 1 year and over with suspected impetigo lesions.",
+    "Localized or widespread lesions of less than 14 days duration.",
+    "No systemic illness or deep tissue involvement."
+  ],
+  "exclusion": [
+    "Signs of systemic illness, cellulitis, or sepsis.",
+    "Periorbital involvement or suspicion of ecthyma.",
+    "Recurrent MRSA infections or post-operative wound infections.",
+    "Neonates under 1 year old."
+  ],
+  "safetyNetting": [
+    "Seek urgent care if fever, rapidly spreading redness, or systemic symptoms develop.",
+    "Return if lesions worsen or fail to improve within 7 days of treatment.",
+    "Advise on hygiene measures to limit spread and avoid school/work until lesions crust."
+  ],
+  "sections": [
+    {
+      "id": "red_flags",
+      "title": "Red flags",
+      "questions": [
+        { "id": "systemicIllness", "type": "boolean", "label": "Systemically unwell (fever, tachycardia)", "required": false, "flagType": "red" },
+        { "id": "rapidSpread", "type": "boolean", "label": "Rapidly spreading erythema/cellulitis", "required": false, "flagType": "red" },
+        { "id": "periorbital", "type": "boolean", "label": "Periorbital involvement", "required": false, "flagType": "red" }
+      ]
+    },
+    {
+      "id": "presentation",
+      "title": "Presentation",
+      "questions": [
+        { "id": "bullous", "type": "boolean", "label": "Bullous lesions present", "required": false },
+        { "id": "widespread", "type": "boolean", "label": "Widespread or multiple body areas", "required": true },
+        { "id": "recurrent", "type": "boolean", "label": "Recurrent impetigo", "required": false },
+        { "id": "mrsaRisk", "type": "boolean", "label": "MRSA risk (healthcare worker/resident)", "required": false },
+        {
+          "id": "durationDays",
+          "type": "number",
+          "label": "Duration of lesions (days)",
+          "min": 0,
+          "max": 30,
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "title": "History and risk factors",
+      "questions": [
+        { "id": "immunocompromised", "type": "boolean", "label": "Known immunocompromise", "required": false },
+        {
+          "id": "penicillinAllergy",
+          "type": "select",
+          "label": "Penicillin allergy",
+          "options": [
+            { "value": "no", "label": "No" },
+            { "value": "yes", "label": "Yes" },
+            { "value": "unknown", "label": "Unknown" }
+          ],
+          "required": false
+        }
+      ]
+    }
+  ],
+  "intake": {
+    "required": {
+      "patient": ["age"],
+      "answers": ["widespread", "durationDays"]
+    }
+  },
+  "logic": {
+    "derived": [
+      {
+        "id": "requiresOral",
+        "expression": {
+          "or": [
+            { "==": [ { "var": "answers.bullous" }, true ] },
+            { "==": [ { "var": "answers.widespread" }, true ] },
+            { "==": [ { "var": "answers.recurrent" }, true ] },
+            { "==": [ { "var": "answers.mrsaRisk" }, true ] }
+          ]
+        }
+      }
+    ],
+    "checks": [
+      {
+        "id": "age_minimum",
+        "description": "Age 1 year or older",
+        "expression": { ">=": [ { "var": "patient.age" }, 1 ] },
+        "pass": { "status": "pass", "label": "Age within Pharmacy First impetigo range." },
+        "fail": {
+          "status": "fail",
+          "label": "Impetigo pathway excludes infants under 1 year.",
+          "result": {
+            "outcome": "refer",
+            "urgency": "routine",
+            "headline": "Refer - patient under 1 year",
+            "summary": "Neonates with suspected impetigo require GP/paediatric review.",
+            "actions": ["Arrange urgent GP assessment for neonate."]
+          }
+        }
+      }
+    ],
+    "advice": [
+      {
+        "id": "allergy_unknown",
+        "expression": { "==": [ { "var": "answers.penicillinAllergy" }, null ] },
+        "warnings": ["Clarify penicillin allergy status before supplying oral antibiotics."],
+        "trace": { "status": "warn", "label": "Penicillin allergy status unknown." }
+      }
+    ],
+    "outcomes": [
+      {
+        "id": "urgent_red_flags",
+        "description": "Urgent red flag symptoms",
+        "expression": {
+          "or": [
+            { "==": [ { "var": "answers.systemicIllness" }, true ] },
+            { "==": [ { "var": "answers.rapidSpread" }, true ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "fail", "label": "Red flag infection signs - urgent referral required." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "urgent",
+          "headline": "Urgent referral - suspected cellulitis or sepsis",
+          "summary": "Escalate immediately due to rapidly spreading or systemic infection signs.",
+          "actions": ["Arrange urgent care or 999 assessment depending on severity."],
+          "referral": {
+            "destination": "Urgent care / A&E",
+            "reason": "Suspected cellulitis/sepsis"
+          }
+        }
+      },
+      {
+        "id": "periorbital_involvement",
+        "description": "Periorbital involvement",
+        "expression": { "==": [ { "var": "answers.periorbital" }, true ] },
+        "trace": {
+          "pass": { "status": "fail", "label": "Periorbital impetigo - refer for medical review." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "urgent",
+          "headline": "Urgent referral - periorbital involvement",
+          "summary": "Risk of orbital complications requires same-day medical assessment.",
+          "actions": ["Arrange same-day urgent care/GP assessment."],
+          "referral": {
+            "destination": "Urgent care / GP",
+            "reason": "Periorbital impetigo"
+          }
+        }
+      },
+      {
+        "id": "immunocompromised",
+        "description": "Immunocompromise present",
+        "expression": { "==": [ { "var": "answers.immunocompromised" }, true ] },
+        "trace": {
+          "pass": { "status": "fail", "label": "Immunocompromised patient - refer to GP." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "routine",
+          "headline": "Refer - immunocompromise is an exclusion",
+          "summary": "Requires GP oversight due to higher complication risk.",
+          "actions": ["Arrange GP review and provide hygiene advice pending assessment."],
+          "referral": {
+            "destination": "GP",
+            "reason": "Immunocompromised patient"
+          }
+        }
+      },
+      {
+        "id": "oral_required_allergy",
+        "description": "Oral antibiotics required with penicillin allergy",
+        "expression": {
+          "and": [
+            { "var": "derived.requiresOral" },
+            { "==": [ { "var": "answers.penicillinAllergy" }, "yes" ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "pass", "label": "Oral antibiotic indicated - supply macrolide." }
+        },
+        "result": {
+          "outcome": "supply",
+          "urgency": "routine",
+          "headline": "Supply Clarithromycin for 7 days",
+          "summary": "Widespread/bullous disease requires oral therapy with penicillin allergy noted.",
+          "actions": [
+            "Supply Clarithromycin 250 mg twice daily for 7 days (adjust paediatric dose).",
+            "Advise adherence, hygiene measures, and wound care.",
+            "Provide written safety-netting regarding escalation."
+          ],
+          "supply": {
+            "product": "Clarithromycin 250 mg tablets or suspension",
+            "dosage": "Take 250 mg twice daily for 7 days (paediatric dose weight adjusted)",
+            "notes": "Check interactions (e.g., statins, anticoagulants)."
+          }
+        }
+      },
+      {
+        "id": "oral_required",
+        "description": "Oral antibiotics required",
+        "expression": {
+          "and": [
+            { "var": "derived.requiresOral" },
+            { "!=": [ { "var": "answers.penicillinAllergy" }, "yes" ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "pass", "label": "Oral antibiotic indicated - supply flucloxacillin." }
+        },
+        "result": {
+          "outcome": "supply",
+          "urgency": "routine",
+          "headline": "Supply Flucloxacillin for 7 days",
+          "summary": "Widespread/bullous disease requires oral therapy with first-line penicillin.",
+          "actions": [
+            "Supply Flucloxacillin 500 mg four times daily for 7 days (paediatric dose weight adjusted).",
+            "Provide hygiene advice and wound care instructions.",
+            "Document safety netting and advise follow-up if no improvement in 48 hours."
+          ],
+          "supply": {
+            "product": "Flucloxacillin 500 mg capsules or oral solution",
+            "dosage": "Take 500 mg four times daily for 7 days (paediatric dose weight adjusted)",
+            "notes": "Take on an empty stomach; check for hepatic dysfunction history."
+          }
+        }
+      },
+      {
+        "id": "topical_supply",
+        "description": "Topical therapy appropriate",
+        "expression": { "!": { "var": "derived.requiresOral" } },
+        "trace": {
+          "pass": { "status": "pass", "label": "Localized disease - supply topical fusidic acid." }
+        },
+        "result": {
+          "outcome": "supply",
+          "urgency": "routine",
+          "headline": "Supply Fusidic acid 2% cream for 5 days",
+          "summary": "Localized non-bullous impetigo suitable for topical therapy.",
+          "actions": [
+            "Supply Fusidic acid 2% cream apply three times daily for 5 days.",
+            "Advise on hygiene, hand washing, and covering lesions.",
+            "Provide written safety-netting advice."],
+          "supply": {
+            "product": "Fusidic acid 2% cream",
+            "dosage": "Apply thinly to affected area three times daily for 5 days",
+            "notes": "Stop treatment once lesions healed; reassess if no improvement in 5 days."
+          }
+        }
+      }
+    ],
+    "default": {
+      "trace": { "status": "info", "label": "No outcome matched." },
+      "result": {
+        "outcome": "incomplete",
+        "urgency": "routine",
+        "headline": "Unable to determine recommendation",
+        "summary": "Gather additional clinical information.",
+        "actions": []
+      }
+    }
+  }
+}

@@ -1,0 +1,258 @@
+{
+  "meta": {
+    "id": "shingles",
+    "name": "Shingles (Herpes zoster)",
+    "version": "1.0.0",
+    "effectiveFrom": "2025-03-01",
+    "lastReviewed": "2025-03-20",
+    "jurisdiction": "England",
+    "service": "Pharmacy First"
+  },
+  "complaint": {
+    "id": "rash_pain",
+    "label": "Painful rash"
+  },
+  "description": "Pharmacy First pathway for shingles assessment, including ophthalmic red flags and antiviral supply decisions.",
+  "inclusion": [
+    "Adults aged 18 years and over with dermatomal vesicular rash consistent with shingles.",
+    "Onset within the last 7 days.",
+    "No features requiring urgent specialist referral."
+  ],
+  "exclusion": [
+    "Ophthalmic involvement or Ramsay Hunt syndrome.",
+    "Pregnancy or breastfeeding without specialist advice.",
+    "Immunocompromise, severe pain, or widespread dissemination.",
+    "Children under 18 years."
+  ],
+  "safetyNetting": [
+    "Seek urgent care if eye involvement develops or rash spreads beyond one dermatome.",
+    "Return if new neurological symptoms appear or pain becomes severe.",
+    "Advise contacting GP if rash not crusted after 7 days of treatment."
+  ],
+  "sections": [
+    {
+      "id": "red_flags",
+      "title": "Red flags",
+      "questions": [
+        { "id": "ophthalmicInvolvement", "type": "boolean", "label": "Eye involvement or forehead rash", "required": false, "flagType": "red" },
+        { "id": "cranialNerve", "type": "boolean", "label": "Ear involvement / facial palsy", "required": false, "flagType": "red" },
+        { "id": "immunocompromised", "type": "boolean", "label": "Known immunocompromise", "required": false }
+      ]
+    },
+    {
+      "id": "presentation",
+      "title": "Presentation",
+      "questions": [
+        { "id": "dermatomalRash", "type": "boolean", "label": "Dermatomal vesicular rash", "required": true },
+        { "id": "pain", "type": "boolean", "label": "Neuropathic pain/burning", "required": false },
+        { "id": "newLesions", "type": "boolean", "label": "New lesions appearing", "required": false },
+        {
+          "id": "durationHours",
+          "type": "number",
+          "label": "Time since rash onset (hours)",
+          "min": 0,
+          "max": 336,
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "title": "History and risk factors",
+      "questions": [
+        { "id": "severePain", "type": "boolean", "label": "Severe pain or analgesia failure", "required": false },
+        { "id": "pregnancyConcern", "type": "boolean", "label": "Pregnant or breastfeeding", "required": false },
+        {
+          "id": "antiviralContra",
+          "type": "boolean",
+          "label": "Renal impairment or contraindication to aciclovir",
+          "required": false
+        }
+      ]
+    }
+  ],
+  "intake": {
+    "required": {
+      "patient": ["age"],
+      "answers": ["dermatomalRash", "durationHours"]
+    }
+  },
+  "logic": {
+    "derived": [
+      {
+        "id": "within72h",
+        "expression": { "<=": [ { "var": "answers.durationHours" }, 72 ] }
+      },
+      {
+        "id": "within120h",
+        "expression": { "<=": [ { "var": "answers.durationHours" }, 120 ] }
+      }
+    ],
+    "checks": [
+      {
+        "id": "age_minimum",
+        "description": "Age 18 years or older",
+        "expression": { ">=": [ { "var": "patient.age" }, 18 ] },
+        "pass": { "status": "pass", "label": "Age within Pharmacy First shingles range." },
+        "fail": {
+          "status": "fail",
+          "label": "Shingles pathway for adults 18+.",
+          "result": {
+            "outcome": "refer",
+            "urgency": "routine",
+            "headline": "Refer - patient under 18",
+            "summary": "Children with suspected shingles require GP/paediatric review.",
+            "actions": ["Arrange GP assessment."]
+          }
+        }
+      },
+      {
+        "id": "confirm_dermatomal",
+        "description": "Dermatomal rash confirmed",
+        "expression": { "==": [ { "var": "answers.dermatomalRash" }, true ] },
+        "pass": { "status": "pass", "label": "Dermatomal vesicular rash recorded." },
+        "fail": {
+          "status": "fail",
+          "label": "Dermatomal rash not confirmed - consider alternative diagnosis.",
+          "result": {
+            "outcome": "refer",
+            "urgency": "routine",
+            "headline": "Refer - differential diagnosis required",
+            "summary": "If dermatomal pattern absent, arrange GP review for alternative causes.",
+            "actions": ["Arrange GP assessment for non-dermatomal rash."]
+          }
+        }
+      }
+    ],
+    "advice": [
+      {
+        "id": "pregnancy",
+        "expression": { "==": [ { "var": "answers.pregnancyConcern" }, true ] },
+        "warnings": ["Pregnancy/breastfeeding - discuss with GP prior to treatment."],
+        "trace": { "status": "warn", "label": "Pregnancy or breastfeeding reported." }
+      },
+      {
+        "id": "renal_contra",
+        "expression": { "==": [ { "var": "answers.antiviralContra" }, true ] },
+        "warnings": ["Check renal function and consider dose adjustment or referral."],
+        "trace": { "status": "warn", "label": "Possible antiviral contraindication." }
+      }
+    ],
+    "outcomes": [
+      {
+        "id": "urgent_opthalmic",
+        "description": "Ophthalmic or cranial nerve involvement",
+        "expression": {
+          "or": [
+            { "==": [ { "var": "answers.ophthalmicInvolvement" }, true ] },
+            { "==": [ { "var": "answers.cranialNerve" }, true ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "fail", "label": "Ophthalmic/cranial nerve involvement - urgent referral required." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "urgent",
+          "headline": "Urgent referral - ophthalmic or cranial nerve involvement",
+          "summary": "Same-day specialist assessment required for eye/ear involvement.",
+          "actions": ["Arrange urgent ophthalmology/ENT review or direct to A&E."],
+          "referral": {
+            "destination": "Urgent care / specialist",
+            "reason": "Ophthalmic or cranial nerve shingles"
+          }
+        }
+      },
+      {
+        "id": "immunocompromised",
+        "description": "Immunocompromise present",
+        "expression": { "==": [ { "var": "answers.immunocompromised" }, true ] },
+        "trace": {
+          "pass": { "status": "fail", "label": "Immunocompromised patient - refer to GP." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "routine",
+          "headline": "Refer - immunocompromise is an exclusion",
+          "summary": "Requires GP/secondary care oversight due to complication risk.",
+          "actions": ["Arrange GP review and provide interim analgesia advice."],
+          "referral": {
+            "destination": "GP",
+            "reason": "Immunocompromised patient"
+          }
+        }
+      },
+      {
+        "id": "antiviral_supply",
+        "description": "Antiviral supply within 72 hours",
+        "expression": { "var": "derived.within72h" },
+        "trace": {
+          "pass": { "status": "pass", "label": "Onset within 72 hours - supply antiviral." }
+        },
+        "result": {
+          "outcome": "supply",
+          "urgency": "routine",
+          "headline": "Supply Aciclovir 800 mg five times daily for 7 days",
+          "summary": "Presentation within 72 hours - antiviral treatment recommended.",
+          "actions": [
+            "Supply Aciclovir 800 mg five times daily for 7 days with hydration advice.",
+            "Advise analgesia (NSAID/paracetamol) and avoid contact with vulnerable individuals.",
+            "Provide written safety-netting including escalation for eye involvement."
+          ],
+          "supply": {
+            "product": "Aciclovir 800 mg tablets",
+            "dosage": "Take one tablet five times daily for 7 days",
+            "notes": "Ensure adequate hydration and adjust dose in renal impairment."
+          }
+        }
+      },
+      {
+        "id": "antiviral_consider",
+        "description": "Antiviral consideration within 120 hours",
+        "expression": {
+          "and": [
+            { "!": { "var": "derived.within72h" } },
+            { "var": "derived.within120h" },
+            {
+              "or": [
+                { "==": [ { "var": "answers.severePain" }, true ] },
+                { "==": [ { "var": "answers.newLesions" }, true ] }
+              ]
+            }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "warn", "label": "Presentation 72-120h with risk factors - consider delayed antiviral." }
+        },
+        "result": {
+          "outcome": "advice",
+          "urgency": "routine",
+          "headline": "Discuss delayed antiviral with GP",
+          "summary": "Outside 72h window but risk factors present - liaise with GP for antiviral consideration.",
+          "actions": [
+            "Contact GP to discuss antiviral prescription due to severe pain or new lesions.",
+            "Provide analgesia advice and skin care guidance.",
+            "Monitor closely and escalate if ocular symptoms develop."
+          ]
+        }
+      }
+    ],
+    "default": {
+      "trace": { "status": "pass", "label": "Provide self-care and analgesia advice." },
+      "result": {
+        "outcome": "advice",
+        "urgency": "routine",
+        "headline": "Self-care advice for late-presenting shingles",
+        "summary": "Presentation beyond antiviral window without high-risk features - provide supportive care.",
+        "actions": [
+          "Recommend analgesia (paracetamol/NSAID if suitable) and consider topical lidocaine patches for pain.",
+          "Advise keeping rash clean/dry and covering lesions.",
+          "Arrange follow-up if pain persists beyond 4 weeks or new symptoms develop."],
+        "safetyNet": [
+          "Seek urgent care if vision changes, rash crosses midline, or new neurological symptoms occur.",
+          "Contact GP if lesions have not crusted within 7 days." 
+        ]
+      }
+    }
+  }
+}
