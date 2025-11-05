@@ -1,0 +1,314 @@
+{
+  "meta": {
+    "id": "otc_diarrhoea",
+    "name": "Acute diarrhoea (OTC)",
+    "version": "1.0.0",
+    "effectiveFrom": "2025-11-02",
+    "lastReviewed": "2025-11-01",
+    "jurisdiction": "England",
+    "service": "OTC self-care"
+  },
+  "complaint": {
+    "id": "otc_diarrhoea",
+    "label": "Acute diarrhoea"
+  },
+  "description": "Assessment to support OTC rehydration and anti-motility advice for uncomplicated acute diarrhoea.",
+  "inclusion": [
+    "Adults and young people aged 12 years and over with sudden onset loose stools.",
+    "Symptoms lasting less than 5 days without systemic red flags.",
+    "Able to maintain oral hydration."
+  ],
+  "exclusion": [
+    "Bloody stools or signs of severe dehydration.",
+    "Immunocompromised patients or significant frailty.",
+    "Recent foreign travel with systemic symptoms.",
+    "Persistent diarrhoea beyond 7 days."
+  ],
+  "safetyNetting": [
+    "Seek urgent care if stool becomes bloody, severe abdominal pain develops, or confusion occurs.",
+    "Return if diarrhoea persists beyond 5 days or new fever appears.",
+    "Maintain hydration and seek medical advice if unable to keep fluids down."
+  ],
+  "sections": [
+    {
+      "id": "red_flags",
+      "title": "Red flags",
+      "type": "rapid_screen",
+      "questions": [
+        {
+          "id": "bloodyStool",
+          "type": "boolean",
+          "label": "Bloody stools",
+          "required": true,
+          "flagType": "red"
+        },
+        {
+          "id": "severeDehydration",
+          "type": "boolean",
+          "label": "Signs of severe dehydration (dizziness, reduced urine)",
+          "required": true,
+          "flagType": "red"
+        },
+        {
+          "id": "immunocompromised",
+          "type": "boolean",
+          "label": "Severely immunocompromised",
+          "required": false
+        }
+      ]
+    },
+    {
+      "id": "symptoms",
+      "title": "Symptom profile",
+      "type": "questionnaire",
+      "questions": [
+        {
+          "id": "stoolFeatures",
+          "type": "multi_select",
+          "label": "Associated features",
+          "options": [
+            { "value": "loose", "label": "Loose stools" },
+            { "value": "watery", "label": "Watery stools" },
+            { "value": "vomiting", "label": "Vomiting" },
+            { "value": "fever", "label": "Fever" },
+            { "value": "abdominal_pain", "label": "Abdominal pain/cramps" }
+          ],
+          "required": true,
+          "helper": "Select all that apply to the current episode."
+        },
+        {
+          "id": "durationDays",
+          "type": "number",
+          "label": "Duration (days)",
+          "min": 0,
+          "max": 14,
+          "required": true
+        },
+        {
+          "id": "episodesPerDay",
+          "type": "number",
+          "label": "Average stools per day",
+          "min": 0,
+          "max": 20,
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "title": "History",
+      "type": "questionnaire",
+      "questions": [
+        {
+          "id": "recentTravel",
+          "type": "select",
+          "label": "Recent travel",
+          "options": [
+            { "value": "no", "label": "No travel" },
+            { "value": "uk", "label": "UK travel" },
+            { "value": "abroad", "label": "International travel" }
+          ],
+          "required": false
+        },
+        {
+          "id": "recentAntibiotic",
+          "type": "boolean",
+          "label": "Antibiotics in last 3 months",
+          "required": false
+        },
+        {
+          "id": "frailtyRisk",
+          "type": "boolean",
+          "label": "Frailty or long-term condition impacting hydration",
+          "required": false
+        }
+      ]
+    }
+  ],
+  "intake": {
+    "required": {
+      "patient": ["age"],
+      "answers": ["stoolFeatures", "durationDays", "episodesPerDay"]
+    }
+  },
+  "logic": {
+    "derived": [
+      {
+        "id": "highFrequency",
+        "expression": { ">=": [ { "var": "answers.episodesPerDay" }, 6 ] }
+      },
+      {
+        "id": "prolongedCourse",
+        "expression": { ">=": [ { "var": "answers.durationDays" }, 5 ] }
+      },
+      {
+        "id": "hasVomiting",
+        "expression": { "includes": [ { "var": "answers.stoolFeatures" }, "vomiting" ] }
+      }
+    ],
+    "checks": [
+      {
+        "id": "age_range",
+        "description": "Age 12 years or over",
+        "expression": { ">=": [ { "var": "patient.age" }, 12 ] },
+        "pass": { "status": "pass", "label": "Age suitable for OTC diarrhoea support." },
+        "fail": {
+          "status": "fail",
+          "label": "Under 12 years - outside OTC scope.",
+          "result": {
+            "outcome": "refer",
+            "urgency": "routine",
+            "headline": "Refer - age under 12",
+            "summary": "Children under 12 require GP assessment for acute diarrhoea.",
+            "actions": ["Arrange GP review or NHS 111 assessment for paediatric management."],
+            "referral": {
+              "destination": "GP",
+              "reason": "Paediatric diarrhoea"
+            }
+          }
+        }
+      }
+    ],
+    "advice": [
+      {
+        "id": "travel_warning",
+        "expression": { "==": [ { "var": "answers.recentTravel" }, "abroad" ] },
+        "warnings": ["Recent foreign travel - monitor for traveller's diarrhoea complications."],
+        "trace": { "status": "warn", "label": "Recent international travel." },
+        "actions": ["Advise stool sample and GP review if symptoms persist beyond 48 hours."]
+      },
+      {
+        "id": "antibiotic_history",
+        "expression": { "==": [ { "var": "answers.recentAntibiotic" }, true ] },
+        "warnings": ["Recent antibiotics increase risk of C. diff - advise urgent review if abdominal pain worsens."],
+        "trace": { "status": "warn", "label": "Recent antibiotic exposure." },
+        "actions": ["Counsel on red flag symptoms of C. difficile infection and ensure rapid referral if noted."]
+      },
+      {
+        "id": "vomiting_support",
+        "expression": { "==": [ { "var": "derived.hasVomiting" }, true ] },
+        "warnings": ["Vomiting present - advise small frequent sips of clear fluids."],
+        "trace": { "status": "info", "label": "Vomiting recorded - emphasise hydration plan." },
+        "actions": [
+          "Recommend oral rehydration solution in small volumes until vomiting subsides.",
+          "Advise avoiding dairy, caffeine, and alcohol during acute phase."
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "id": "urgent_red_flags",
+        "description": "Urgent red flag symptoms",
+        "expression": {
+          "or": [
+            { "==": [ { "var": "answers.bloodyStool" }, true ] },
+            { "==": [ { "var": "answers.severeDehydration" }, true ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "fail", "label": "Red flag diarrhoea presentation - urgent referral." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "urgent",
+          "headline": "Urgent referral - bloody stool or severe dehydration",
+          "summary": "Immediate medical assessment required due to red flag findings.",
+          "actions": ["Arrange same-day urgent care review; advise nil by mouth until assessed."],
+          "referral": {
+            "destination": "Urgent care / A&E",
+            "reason": "Acute diarrhoea with red flags"
+          }
+        }
+      },
+      {
+        "id": "immunocompromised",
+        "description": "Immunocompromised patient",
+        "expression": { "==": [ { "var": "answers.immunocompromised" }, true ] },
+        "trace": {
+          "pass": { "status": "fail", "label": "Immunocompromised - requires prescriber review." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "routine",
+          "headline": "Refer - immunocompromised patient",
+          "summary": "Seek GP assessment due to higher complication risk.",
+          "actions": ["Arrange GP appointment within 24 hours and reinforce hydration advice."],
+          "referral": {
+            "destination": "GP",
+            "reason": "Immunocompromised with diarrhoea"
+          }
+        }
+      },
+      {
+        "id": "frailty_risk",
+        "description": "Frailty with high frequency stools",
+        "expression": {
+          "and": [
+            { "==": [ { "var": "answers.frailtyRisk" }, true ] },
+            { "==": [ { "var": "derived.highFrequency" }, true ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "warn", "label": "Frailty with frequent stools - consider escalation." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "routine",
+          "headline": "Refer - frailty with high stool frequency",
+          "summary": "Frailty plus frequent stools risks dehydration; arrange GP review.",
+          "actions": [
+            "Contact GP to arrange same-day telephone review.",
+            "Ensure carer monitors fluid intake and urine output."
+          ],
+          "referral": {
+            "destination": "GP",
+            "reason": "Frailty risk with diarrhoea"
+          }
+        }
+      },
+      {
+        "id": "prolonged_course",
+        "description": "Symptoms lasting 5 days or more",
+        "expression": { "==": [ { "var": "derived.prolongedCourse" }, true ] },
+        "trace": {
+          "pass": { "status": "warn", "label": "Symptoms ≥5 days - consider referral." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "routine",
+          "headline": "Refer - prolonged diarrhoea",
+          "summary": "Persistent diarrhoea beyond 5 days - arrange GP review for stool testing.",
+          "actions": ["Provide ORS supply for interim support while awaiting GP review."],
+          "referral": {
+            "destination": "GP",
+            "reason": "Diarrhoea ≥5 days"
+          }
+        }
+      }
+    ],
+    "default": {
+      "trace": { "status": "pass", "label": "Criteria met for OTC diarrhoea support." },
+      "result": {
+        "outcome": "supply",
+        "urgency": "routine",
+        "headline": "Supply oral rehydration salts ± loperamide",
+        "summary": "Provide oral rehydration therapy and consider loperamide where suitable.",
+        "actions": [
+          "Supply oral rehydration salts - dissolve one sachet in 200 ml water after each loose stool (max 5 sachets/day).",
+          "If no contraindications, supply loperamide 2 mg: take two capsules initially then one after each loose stool (max 6 per day).",
+          "Advise bland diet (BRAT) and avoid dairy, caffeine, and alcohol during acute phase."
+        ],
+        "supply": {
+          "product": "Oral rehydration salts and loperamide 2 mg capsules",
+          "dosage": "ORS after each stool; loperamide up to 6 capsules per day (age ≥12)",
+          "notes": "Check for contraindications (bloody stool, fever, under 12, pregnancy) before supplying loperamide."
+        },
+        "safetyNet": [
+          "Return if symptoms persist beyond 48 hours despite treatment.",
+          "Seek urgent care if unable to maintain hydration or if stool becomes bloody.",
+          "Arrange GP review if abdominal pain worsens or fever develops."
+        ]
+      }
+    }
+  }
+}

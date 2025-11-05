@@ -1,0 +1,252 @@
+{
+  "meta": {
+    "id": "infected_insect_bite",
+    "name": "Infected insect bite",
+    "version": "1.0.0",
+    "effectiveFrom": "2025-03-01",
+    "lastReviewed": "2025-03-20",
+    "jurisdiction": "England",
+    "service": "Pharmacy First"
+  },
+  "complaint": {
+    "id": "skin_bite",
+    "label": "Insect bite"
+  },
+  "description": "Pharmacy First pathway for assessing suspected infected insect bites and cellulitis risk.",
+  "inclusion": [
+    "Patients with localized skin infection following an insect bite.",
+    "Symptoms present for 14 days or fewer without systemic sepsis features.",
+    "Able to take flucloxacillin or macrolide alternatives if required."
+  ],
+  "exclusion": [
+    "Anaphylaxis, airway compromise, or systemic allergic reaction.",
+    "Rapidly spreading cellulitis with systemic upset or sepsis.",
+    "Bites involving the face with orbital involvement or near prosthetic joints.",
+    "Immunocompromised patients requiring medical oversight."
+  ],
+  "safetyNetting": [
+    "Seek urgent care if redness spreads rapidly, fever develops, or streaking appears.",
+    "Return if swelling or pain worsens after 48 hours of treatment.",
+    "Advise elevation of affected limb and avoidance of further scratching."
+  ],
+  "sections": [
+    {
+      "id": "red_flags",
+      "title": "Red flags",
+      "questions": [
+        { "id": "anaphylaxis", "type": "boolean", "label": "Signs of anaphylaxis or airway compromise", "required": false, "flagType": "red" },
+        { "id": "rapidSwelling", "type": "boolean", "label": "Rapidly spreading swelling", "required": false, "flagType": "red" },
+        { "id": "systemicSymptoms", "type": "boolean", "label": "Systemically very unwell", "required": false, "flagType": "red" }
+      ]
+    },
+    {
+      "id": "assessment",
+      "title": "Assessment",
+      "questions": [
+        { "id": "erythemaExpanding", "type": "boolean", "label": "Expanding erythema", "required": false },
+        { "id": "purulence", "type": "boolean", "label": "Purulent discharge", "required": false },
+        { "id": "lymphangitis", "type": "boolean", "label": "Red streaking/lymphangitis", "required": false },
+        {
+          "id": "lesionSizeCm",
+          "type": "number",
+          "label": "Approximate diameter of affected area (cm)",
+          "min": 0,
+          "max": 50,
+          "required": true
+        },
+        {
+          "id": "durationDays",
+          "type": "number",
+          "label": "Symptom duration (days)",
+          "min": 0,
+          "max": 30,
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "title": "History and risk factors",
+      "questions": [
+        { "id": "immunocompromised", "type": "boolean", "label": "Known immunocompromise", "required": false },
+        { "id": "diabetes", "type": "boolean", "label": "Diabetes with poor control", "required": false },
+        {
+          "id": "antibioticAllergy",
+          "type": "select",
+          "label": "Penicillin allergy",
+          "options": [
+            { "value": "no", "label": "No" },
+            { "value": "yes", "label": "Yes" },
+            { "value": "unknown", "label": "Unknown" }
+          ],
+          "required": false
+        }
+      ]
+    }
+  ],
+  "intake": {
+    "required": {
+      "patient": ["age"],
+      "answers": ["lesionSizeCm", "durationDays"]
+    }
+  },
+  "logic": {
+    "derived": [
+      {
+        "id": "severeInfection",
+        "expression": {
+          "or": [
+            { "==": [ { "var": "answers.systemicSymptoms" }, true ] },
+            { "==": [ { "var": "answers.lymphangitis" }, true ] },
+            { "==": [ { "var": "answers.rapidSwelling" }, true ] },
+            { ">": [ { "var": "answers.lesionSizeCm" }, 10 ] }
+          ]
+        }
+      },
+      {
+        "id": "oralAntibiotic",
+        "expression": {
+          "or": [
+            { "==": [ { "var": "answers.purulence" }, true ] },
+            { "==": [ { "var": "answers.erythemaExpanding" }, true ] },
+            { ">=": [ { "var": "answers.durationDays" }, 2 ] },
+            { "==": [ { "var": "answers.diabetes" }, true ] }
+          ]
+        }
+      }
+    ],
+    "advice": [
+      {
+        "id": "allergy_unknown",
+        "expression": { "==": [ { "var": "answers.antibioticAllergy" }, null ] },
+        "warnings": ["Clarify penicillin allergy status before supplying antibiotics."],
+        "trace": { "status": "warn", "label": "Penicillin allergy status unknown." }
+      }
+    ],
+    "outcomes": [
+      {
+        "id": "anaphylaxis",
+        "description": "Signs of anaphylaxis",
+        "expression": { "==": [ { "var": "answers.anaphylaxis" }, true ] },
+        "trace": {
+          "pass": { "status": "fail", "label": "Anaphylaxis suspected - call emergency services." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "urgent",
+          "headline": "Emergency referral - suspected anaphylaxis",
+          "summary": "Call 999 and administer adrenaline if trained to do so.",
+          "actions": ["Call 999 immediately.", "Lie patient flat and raise legs if tolerated."]
+        }
+      },
+      {
+        "id": "urgent_infection",
+        "description": "Severe infection criteria",
+        "expression": { "var": "derived.severeInfection" },
+        "trace": {
+          "pass": { "status": "fail", "label": "Severe infection indicators present - urgent referral required." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "urgent",
+          "headline": "Urgent referral - suspected cellulitis",
+          "summary": "Rapid spread or systemic symptoms require urgent medical review.",
+          "actions": ["Arrange same-day GP/urgent care assessment."]
+        }
+      },
+      {
+        "id": "immunocompromised",
+        "description": "Immunocompromise present",
+        "expression": { "==": [ { "var": "answers.immunocompromised" }, true ] },
+        "trace": {
+          "pass": { "status": "fail", "label": "Immunocompromised patient - refer to GP." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "routine",
+          "headline": "Refer - immunocompromise is an exclusion",
+          "summary": "Requires GP follow-up due to higher complication risk.",
+          "actions": ["Arrange GP review within 24 hours."],
+          "referral": {
+            "destination": "GP",
+            "reason": "Immunocompromised patient"
+          }
+        }
+      },
+      {
+        "id": "oral_antibiotic_allergy",
+        "description": "Oral antibiotic indicated with penicillin allergy",
+        "expression": {
+          "and": [
+            { "var": "derived.oralAntibiotic" },
+            { "==": [ { "var": "answers.antibioticAllergy" }, "yes" ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "pass", "label": "Oral antibiotic indicated - supply clarithromycin." }
+        },
+        "result": {
+          "outcome": "supply",
+          "urgency": "routine",
+          "headline": "Supply Clarithromycin for 5 days",
+          "summary": "Moderate infection requires oral therapy and penicillin allergy recorded.",
+          "actions": [
+            "Supply Clarithromycin 500 mg twice daily for 5 days (adjust paediatric dose).",
+            "Advise limb elevation, antihistamine for itch, and wound hygiene.",
+            "Provide written safety-netting including escalation triggers."
+          ],
+          "supply": {
+            "product": "Clarithromycin 500 mg tablets or suspension",
+            "dosage": "Take 500 mg twice daily for 5 days (paediatric dose weight adjusted)",
+            "notes": "Check for drug interactions and hepatic impairment."
+          }
+        }
+      },
+      {
+        "id": "oral_antibiotic",
+        "description": "Oral antibiotic indicated",
+        "expression": {
+          "and": [
+            { "var": "derived.oralAntibiotic" },
+            { "!=": [ { "var": "answers.antibioticAllergy" }, "yes" ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "pass", "label": "Oral antibiotic indicated - supply flucloxacillin." }
+        },
+        "result": {
+          "outcome": "supply",
+          "urgency": "routine",
+          "headline": "Supply Flucloxacillin for 5 days",
+          "summary": "Moderate infection suitable for Pharmacy First oral antibiotic supply.",
+          "actions": [
+            "Supply Flucloxacillin 500 mg four times daily for 5 days (paediatric dose weight adjusted).",
+            "Advise elevation, antihistamines for itch, and avoidance of scratching.",
+            "Provide written safety-netting advice."],
+          "supply": {
+            "product": "Flucloxacillin 500 mg capsules or oral solution",
+            "dosage": "Take 500 mg four times daily for 5 days (paediatric dose weight adjusted)",
+            "notes": "Take on an empty stomach; review adherence after 48 hours."
+          }
+        }
+      }
+    ],
+    "default": {
+      "trace": { "status": "pass", "label": "Mild symptoms - provide self-care advice." },
+      "result": {
+        "outcome": "advice",
+        "urgency": "routine",
+        "headline": "Self-care advice for mild insect bite",
+        "summary": "Provide symptomatic management with watchful waiting.",
+        "actions": [
+          "Recommend oral antihistamine and topical hydrocortisone 1% for itch (if suitable).",
+          "Advise cold compresses and elevation of affected limb.",
+          "Arrange follow-up if redness spreads or symptoms persist beyond 3 days."],
+        "safetyNet": [
+          "Seek urgent care if systemic symptoms develop or redness spreads rapidly.",
+          "Return for reassessment if no improvement in 48 hours."
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,334 @@
+{
+  "meta": {
+    "id": "otc_cough_cold",
+    "name": "Common cold and nasal congestion",
+    "version": "1.0.0",
+    "effectiveFrom": "2025-11-02",
+    "lastReviewed": "2025-11-01",
+    "jurisdiction": "England",
+    "service": "OTC self-care"
+  },
+  "complaint": {
+    "id": "otc_cough_cold",
+    "label": "Cold and congestion"
+  },
+  "description": "Self-care assessment for uncomplicated cold symptoms to support targeted OTC supply and safety netting.",
+  "inclusion": [
+    "Adults and young people aged 12 years and over presenting with typical cold symptoms.",
+    "Mild upper respiratory symptoms less than three weeks in duration.",
+    "No signs of severe systemic illness or lower respiratory tract infection."
+  ],
+  "exclusion": [
+    "Severe breathlessness or chest pain at rest.",
+    "High-risk immunosuppression or significant chronic lung disease exacerbation.",
+    "Symptoms persisting beyond three weeks or worsening after initial improvement.",
+    "Children under 12 years of age."
+  ],
+  "safetyNetting": [
+    "Seek urgent medical care if breathlessness, chest pain, or confusion develops.",
+    "Arrange GP assessment if symptoms persist beyond three weeks or significantly worsen.",
+    "Return for review if fever above 39°C lasts longer than 48 hours despite treatment."
+  ],
+  "sections": [
+    {
+      "id": "red_flags",
+      "title": "Red flags",
+      "type": "rapid_screen",
+      "questions": [
+        {
+          "id": "severeBreathlessness",
+          "type": "boolean",
+          "label": "Severe breathlessness or difficulty breathing",
+          "required": true,
+          "flagType": "red"
+        },
+        {
+          "id": "chestPain",
+          "type": "boolean",
+          "label": "Chest pain at rest",
+          "required": true,
+          "flagType": "red"
+        },
+        {
+          "id": "immunosuppressed",
+          "type": "boolean",
+          "label": "Severe immunosuppression (e.g. chemotherapy)",
+          "required": false
+        }
+      ]
+    },
+    {
+      "id": "symptoms",
+      "title": "Cold symptoms",
+      "type": "questionnaire",
+      "questions": [
+        {
+          "id": "commonSymptoms",
+          "type": "multi_select",
+          "label": "Current symptoms",
+          "options": [
+            { "value": "cough", "label": "Cough" },
+            { "value": "nasal_congestion", "label": "Blocked or runny nose" },
+            { "value": "sore_throat", "label": "Sore throat" },
+            { "value": "sneezing", "label": "Sneezing" },
+            { "value": "low_grade_fever", "label": "Low-grade fever" }
+          ],
+          "required": true,
+          "helper": "Select all symptoms the patient currently has."
+        },
+        {
+          "id": "durationDays",
+          "type": "number",
+          "label": "Duration of symptoms (days)",
+          "min": 0,
+          "max": 30,
+          "required": true
+        },
+        {
+          "id": "selfCareTried",
+          "type": "select",
+          "label": "Self-care already tried",
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "simple", "label": "Hydration/rest" },
+            { "value": "oral_analgesia", "label": "Paracetamol/ibuprofen" },
+            { "value": "decongestant", "label": "Decongestant products" }
+          ],
+          "required": false
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "title": "History",
+      "type": "questionnaire",
+      "questions": [
+        {
+          "id": "underlyingLungDisease",
+          "type": "boolean",
+          "label": "Known asthma/COPD exacerbation",
+          "required": false
+        },
+        {
+          "id": "smoker",
+          "type": "boolean",
+          "label": "Current smoker",
+          "required": false
+        }
+      ]
+    }
+  ],
+  "intake": {
+    "required": {
+      "patient": ["age"],
+      "answers": ["commonSymptoms", "durationDays"]
+    }
+  },
+  "logic": {
+    "derived": [
+      {
+        "id": "symptomCount",
+        "expression": {
+          "+": [
+            { "if": [ { "includes": [ { "var": "answers.commonSymptoms" }, "cough" ] }, 1, 0 ] },
+            { "if": [ { "includes": [ { "var": "answers.commonSymptoms" }, "nasal_congestion" ] }, 1, 0 ] },
+            { "if": [ { "includes": [ { "var": "answers.commonSymptoms" }, "sore_throat" ] }, 1, 0 ] },
+            { "if": [ { "includes": [ { "var": "answers.commonSymptoms" }, "sneezing" ] }, 1, 0 ] },
+            { "if": [ { "includes": [ { "var": "answers.commonSymptoms" }, "low_grade_fever" ] }, 1, 0 ] }
+          ]
+        }
+      },
+      {
+        "id": "hasFever",
+        "expression": { "includes": [ { "var": "answers.commonSymptoms" }, "low_grade_fever" ] }
+      }
+    ],
+    "checks": [
+      {
+        "id": "age_range",
+        "description": "Age 12 years or over",
+        "expression": { ">=": [ { "var": "patient.age" }, 12 ] },
+        "pass": { "status": "pass", "label": "Age within OTC cold guidance." },
+        "fail": {
+          "status": "fail",
+          "label": "Under 12 years - refer to GP/urgent care.",
+          "result": {
+            "outcome": "refer",
+            "urgency": "routine",
+            "headline": "Refer - age under 12 years",
+            "summary": "OTC cold protocol covers patients aged 12 years and over.",
+            "actions": ["Signpost to GP or NHS 111 for age-specific review."],
+            "referral": {
+              "destination": "GP",
+              "reason": "Under 12 years with cold symptoms"
+            }
+          }
+        }
+      },
+      {
+        "id": "duration_window",
+        "description": "Symptoms under 21 days",
+        "expression": { "<=": [ { "var": "answers.durationDays" }, 21 ] },
+        "pass": { "status": "pass", "label": "Duration {{answers.durationDays}} days." },
+        "fail": {
+          "status": "fail",
+          "label": "Symptoms beyond three weeks - chronic course.",
+          "result": {
+            "outcome": "refer",
+            "urgency": "routine",
+            "headline": "Refer - symptoms beyond three weeks",
+            "summary": "Persistent cold symptoms beyond three weeks require GP assessment.",
+            "actions": [
+              "Arrange GP appointment to exclude secondary infection or other pathology.",
+              "Provide interim self-care advice while awaiting review."
+            ],
+            "referral": {
+              "destination": "GP",
+              "reason": "Cold symptoms >3 weeks"
+            }
+          }
+        }
+      }
+    ],
+    "advice": [
+      {
+        "id": "smoker_support",
+        "expression": { "==": [ { "var": "answers.smoker" }, true ] },
+        "warnings": ["Discuss smoking cessation support alongside symptom relief."],
+        "trace": { "status": "warn", "label": "Smoker - reinforce smoking cessation support." },
+        "actions": ["Offer smoking cessation brief advice and refer to stop smoking services if appropriate."]
+      },
+      {
+        "id": "self_care_gap",
+        "expression": { "==": [ { "var": "answers.selfCareTried" }, "none" ] },
+        "warnings": ["Patient has not tried basic measures - explain non-pharmacological care."],
+        "trace": { "status": "info", "label": "No prior self-care attempted." },
+        "actions": [
+          "Cover hydration, rest, and hand hygiene advice before recommending medicines.",
+          "Provide written leaflet summarising self-care."
+        ]
+      },
+      {
+        "id": "lung_disease_caution",
+        "expression": { "==": [ { "var": "answers.underlyingLungDisease" }, true ] },
+        "warnings": ["Underlying lung disease - monitor for exacerbation."],
+        "trace": { "status": "warn", "label": "Underlying lung condition declared." },
+        "actions": ["Advise patient to use their rescue inhaler as prescribed and seek review if breathlessness increases."]
+      }
+    ],
+    "outcomes": [
+      {
+        "id": "urgent_red_flags",
+        "description": "Immediate red flag symptoms",
+        "expression": {
+          "or": [
+            { "==": [ { "var": "answers.severeBreathlessness" }, true ] },
+            { "==": [ { "var": "answers.chestPain" }, true ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "fail", "label": "Red flag symptom - urgent referral required." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "urgent",
+          "headline": "Urgent referral - severe respiratory or cardiac symptoms",
+          "summary": "Escalate immediately due to severe breathlessness or chest pain.",
+          "actions": ["Call 999/urgent care as appropriate and provide safety netting to family."],
+          "referral": {
+            "destination": "Urgent care / A&E",
+            "reason": "Cold presentation with red flag symptom"
+          }
+        }
+      },
+      {
+        "id": "immunosuppressed",
+        "description": "Severely immunosuppressed patient",
+        "expression": { "==": [ { "var": "answers.immunosuppressed" }, true ] },
+        "trace": {
+          "pass": { "status": "fail", "label": "Immunosuppressed - needs prescriber review." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "routine",
+          "headline": "Refer - immunosuppressed patient",
+          "summary": "Requires GP assessment due to infection risk.",
+          "actions": ["Arrange GP follow-up within 24 hours and provide self-care advice."],
+          "referral": {
+            "destination": "GP",
+            "reason": "Immunosuppressed cold presentation"
+          }
+        }
+      },
+      {
+        "id": "prolonged_symptoms",
+        "description": "Symptoms lasting over 14 days",
+        "expression": { ">": [ { "var": "answers.durationDays" }, 14 ] },
+        "trace": {
+          "pass": { "status": "warn", "label": "Symptoms beyond two weeks - consider GP review." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "routine",
+          "headline": "Refer - prolonged symptom course",
+          "summary": "Symptom duration beyond 14 days - arrange GP review.",
+          "actions": [
+            "Book GP appointment to exclude sinusitis or secondary infection.",
+            "Reinforce nasal saline and analgesia while awaiting review."
+          ],
+          "referral": {
+            "destination": "GP",
+            "reason": "Cold symptoms >14 days"
+          }
+        }
+      },
+      {
+        "id": "low_symptom_burden",
+        "description": "Mild symptom profile",
+        "expression": { "<=": [ { "var": "derived.symptomCount" }, 1 ] },
+        "trace": {
+          "pass": { "status": "info", "label": "Mild symptom burden - focus on self-care support." },
+          "fail": { "status": "info", "label": "Multiple symptoms recorded." }
+        },
+        "result": {
+          "outcome": "advice",
+          "urgency": "routine",
+          "headline": "Self-care advice - mild cold",
+          "summary": "Reassure and provide symptomatic relief advice for mild cold symptoms.",
+          "actions": [
+            "Recommend rest, fluids, and simple analgesia as required.",
+            "Discuss honey-based cough relief for adults and frequent hand washing.",
+            "Advise follow-up if symptoms worsen or new red flags appear."
+          ],
+          "safetyNet": [
+            "Seek urgent care if breathlessness or chest pain develops.",
+            "Arrange GP assessment if symptoms persist beyond 3 weeks."
+          ]
+        }
+      }
+    ],
+    "default": {
+      "trace": { "status": "pass", "label": "Criteria met for OTC cold relief supply." },
+      "result": {
+        "outcome": "supply",
+        "urgency": "routine",
+        "headline": "Supply symptomatic relief pack",
+        "summary": "Offer non-sedating decongestant or menthol inhalation with analgesia as required.",
+        "actions": [
+          "Supply pseudoephedrine-free decongestant (e.g. xylometazoline nasal spray) for up to 7 days.",
+          "Recommend paracetamol or ibuprofen within licence for fever or pain.",
+          "Advise saline nasal rinses and rest; review if no improvement in 7 days."
+        ],
+        "supply": {
+          "product": "Xylometazoline 0.1% nasal spray (adult)",
+          "dosage": "One spray in each nostril up to three times daily for a maximum of 7 days",
+          "notes": "Warn about rebound congestion if used beyond 7 days and avoid at bedtime due to stimulant effect."
+        },
+        "safetyNet": [
+          "Return if symptoms worsen, fever persists beyond 48 hours, or sinus pain develops.",
+          "Seek urgent care for sudden breathlessness, chest pain, or confusion."
+        ]
+      }
+    }
+  }
+}

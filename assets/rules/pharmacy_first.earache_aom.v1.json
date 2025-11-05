@@ -1,0 +1,306 @@
+{
+  "meta": {
+    "id": "earache_aom",
+    "name": "Earache / Acute otitis media",
+    "version": "1.0.0",
+    "effectiveFrom": "2025-03-01",
+    "lastReviewed": "2025-03-20",
+    "jurisdiction": "England",
+    "service": "Pharmacy First"
+  },
+  "complaint": {
+    "id": "earache",
+    "label": "Earache"
+  },
+  "description": "Assessment pathway for acute otitis media supporting Pharmacy First consultation and supply decisions.",
+  "inclusion": [
+    "Children and adults aged 1 year and over with acute ear pain or discharge.",
+    "Symptoms present for 14 days or fewer without signs of mastoiditis or meningitis.",
+    "Able to take amoxicillin or macrolide alternatives when indicated."
+  ],
+  "exclusion": [
+    "Suspected mastoiditis, facial nerve palsy, or intracranial complications.",
+    "Recurrent AOM with grommets or craniofacial abnormalities requiring ENT review.",
+    "Known immunocompromise or systemic sepsis features.",
+    "Infants under 1 year of age."
+  ],
+  "safetyNetting": [
+    "Seek urgent care if swelling develops behind the ear or the ear protrudes.",
+    "Return if pain or fever worsens after 48 hours despite treatment.",
+    "Arrange GP review if symptoms persist beyond 1 week or hearing does not recover."
+  ],
+  "sections": [
+    {
+      "id": "red_flags",
+      "title": "Red flags",
+      "questions": [
+        { "id": "mastoiditisSigns", "type": "boolean", "label": "Swelling/redness behind ear or protruding pinna", "required": false, "flagType": "red" },
+        { "id": "facialParalysis", "type": "boolean", "label": "Facial weakness or cranial nerve palsy", "required": false, "flagType": "red" },
+        { "id": "systemicallyUnwell", "type": "boolean", "label": "Systemically very unwell", "required": false, "flagType": "red" }
+      ]
+    },
+    {
+      "id": "presentation",
+      "title": "Presentation",
+      "questions": [
+        { "id": "severeOtalgia", "type": "boolean", "label": "Severe ear pain", "required": true },
+        { "id": "otorrhoea", "type": "boolean", "label": "Ear discharge (perforation)", "required": false },
+        { "id": "feverHigh", "type": "boolean", "label": "Fever ≥38.5°C", "required": false },
+        { "id": "bilateral", "type": "boolean", "label": "Bilateral infection", "required": false },
+        { "id": "perforation", "type": "boolean", "label": "Suspected tympanic membrane perforation", "required": false },
+        {
+          "id": "durationDays",
+          "type": "number",
+          "label": "Symptom duration (days)",
+          "min": 0,
+          "max": 30,
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "title": "History and risk modifiers",
+      "questions": [
+        { "id": "recurrentOtitis", "type": "boolean", "label": "Recurrent otitis media", "required": false },
+        { "id": "immunocompromised", "type": "boolean", "label": "Known immunocompromise", "required": false },
+        { "id": "antibioticsLastMonth", "type": "boolean", "label": "Antibiotics in last 30 days", "required": false },
+        {
+          "id": "antibioticAllergy",
+          "type": "select",
+          "label": "Penicillin allergy",
+          "options": [
+            { "value": "no", "label": "No" },
+            { "value": "yes", "label": "Yes" },
+            { "value": "unknown", "label": "Unknown" }
+          ],
+          "required": false
+        }
+      ]
+    }
+  ],
+  "intake": {
+    "required": {
+      "patient": ["age"],
+      "answers": ["severeOtalgia", "durationDays"]
+    }
+  },
+  "logic": {
+    "derived": [
+      {
+        "id": "immediateAntibiotic",
+        "expression": {
+          "or": [
+            { ">=": [ { "var": "answers.durationDays" }, 4 ] },
+            { "==": [ { "var": "answers.otorrhoea" }, true ] },
+            {
+              "and": [
+                { "<": [ { "var": "patient.age" }, 2 ] },
+                { "==": [ { "var": "answers.bilateral" }, true ] }
+              ]
+            },
+            { "==": [ { "var": "answers.systemicallyUnwell" }, true ] },
+            { "==": [ { "var": "answers.feverHigh" }, true ] }
+          ]
+        }
+      },
+      {
+        "id": "delayedCriteria",
+        "expression": {
+          "and": [
+            { "==": [ { "var": "answers.severeOtalgia" }, true ] },
+            { "<": [ { "var": "answers.durationDays" }, 4 ] },
+            { "!": { "var": "derived.immediateAntibiotic" } }
+          ]
+        }
+      }
+    ],
+    "checks": [
+      {
+        "id": "age_minimum",
+        "description": "Age 1 year or older",
+        "expression": { ">=": [ { "var": "patient.age" }, 1 ] },
+        "pass": { "status": "pass", "label": "Age within Pharmacy First earache range." },
+        "fail": {
+          "status": "fail",
+          "label": "Infants under 1 year require medical assessment.",
+          "result": {
+            "outcome": "refer",
+            "urgency": "routine",
+            "headline": "Refer - patient under 1 year",
+            "summary": "Pharmacy First earache pathway excludes infants under 1 year.",
+            "actions": ["Arrange GP or paediatric review."]
+          }
+        }
+      }
+    ],
+    "advice": [
+      {
+        "id": "recurrent_otitis",
+        "expression": { "==": [ { "var": "answers.recurrentOtitis" }, true ] },
+        "warnings": ["Frequent infections - consider ENT referral via GP."],
+        "trace": { "status": "warn", "label": "Recurrent otitis media noted." }
+      },
+      {
+        "id": "allergy_unknown",
+        "expression": { "==": [ { "var": "answers.antibioticAllergy" }, null ] },
+        "warnings": ["Clarify penicillin allergy status before issuing antibiotics."],
+        "trace": { "status": "warn", "label": "Penicillin allergy status unknown." }
+      }
+    ],
+    "outcomes": [
+      {
+        "id": "urgent_red_flags",
+        "description": "Urgent red flag symptoms",
+        "expression": {
+          "or": [
+            { "==": [ { "var": "answers.mastoiditisSigns" }, true ] },
+            { "==": [ { "var": "answers.facialParalysis" }, true ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "fail", "label": "Red flag symptom identified - urgent referral required." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "urgent",
+          "headline": "Urgent referral - suspected mastoiditis/complication",
+          "summary": "Immediate medical assessment required due to red flag signs.",
+          "actions": ["Arrange same-day urgent care or 999 depending on severity."],
+          "referral": {
+            "destination": "Urgent care / A&E",
+            "reason": "Suspected mastoiditis or neurological involvement"
+          }
+        }
+      },
+      {
+        "id": "immunocompromise",
+        "description": "Immunocompromise present",
+        "expression": { "==": [ { "var": "answers.immunocompromised" }, true ] },
+        "trace": {
+          "pass": { "status": "fail", "label": "Immunocompromised patient - refer to GP." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "routine",
+          "headline": "Refer - immunocompromise is an exclusion",
+          "summary": "Requires GP review due to increased risk of complications.",
+          "actions": ["Arrange GP follow-up and provide analgesia advice."],
+          "referral": {
+            "destination": "GP",
+            "reason": "Immunocompromised patient"
+          }
+        }
+      },
+      {
+        "id": "perforation",
+        "description": "Suspected perforation",
+        "expression": { "==": [ { "var": "answers.perforation" }, true ] },
+        "trace": {
+          "pass": { "status": "fail", "label": "Tympanic membrane perforation suspected - refer." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "routine",
+          "headline": "Refer - suspected tympanic membrane perforation",
+          "summary": "Requires GP/ENT review and potential topical treatment.",
+          "actions": ["Arrange GP review within 24 hours."]
+        }
+      },
+      {
+        "id": "immediate_antibiotic_allergy",
+        "description": "Immediate antibiotic criteria met with penicillin allergy",
+        "expression": {
+          "and": [
+            { "var": "derived.immediateAntibiotic" },
+            { "==": [ { "var": "answers.antibioticAllergy" }, "yes" ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "pass", "label": "Immediate antibiotic indicated - supply macrolide." }
+        },
+        "result": {
+          "outcome": "supply",
+          "urgency": "routine",
+          "headline": "Supply Clarithromycin for 5 days",
+          "summary": "Severe features meet criteria for immediate antibiotic with penicillin allergy recorded.",
+          "actions": [
+            "Supply Clarithromycin 250 mg twice daily for 5 days (weight-adjust paediatric dosing).",
+            "Provide analgesia advice and discuss adherence.",
+            "Give written safety-netting including escalation triggers."
+          ],
+          "supply": {
+            "product": "Clarithromycin 250 mg tablets or suspension",
+            "dosage": "Take 250 mg twice daily for 5 days (child doses weight adjusted)",
+            "notes": "Check drug interactions (e.g., statins) before supply."
+          }
+        }
+      },
+      {
+        "id": "immediate_antibiotic",
+        "description": "Immediate antibiotic criteria met",
+        "expression": {
+          "and": [
+            { "var": "derived.immediateAntibiotic" },
+            { "!=": [ { "var": "answers.antibioticAllergy" }, "yes" ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "pass", "label": "Immediate antibiotic indicated - supply amoxicillin." }
+        },
+        "result": {
+          "outcome": "supply",
+          "urgency": "routine",
+          "headline": "Supply Amoxicillin for 5 days",
+          "summary": "Severe features meet criteria for immediate antibiotic therapy.",
+          "actions": [
+            "Supply Amoxicillin 500 mg three times daily for 5 days (adjust paediatric dose by weight).",
+            "Advise analgesia (paracetamol/ibuprofen) and fluid intake.",
+            "Document safety-netting including escalation if symptoms worsen."
+          ],
+          "supply": {
+            "product": "Amoxicillin 500 mg capsules or oral suspension",
+            "dosage": "Take 500 mg three times daily for 5 days (paediatric dosing per weight)",
+            "notes": "Check for recent beta-lactam exposure or interactions."
+          }
+        }
+      },
+      {
+        "id": "delayed_antibiotic",
+        "description": "Moderate symptoms - delayed approach",
+        "expression": { "var": "derived.delayedCriteria" },
+        "trace": {
+          "pass": { "status": "warn", "label": "Offer delayed antibiotic prescription with safety netting." }
+        },
+        "result": {
+          "outcome": "advice",
+          "urgency": "routine",
+          "headline": "Consider delayed antibiotic prescription",
+          "summary": "Discuss delayed prescription and provide strong safety netting.",
+          "actions": [
+            "Provide delayed prescription valid for 3 days if symptoms fail to improve.",
+            "Advise regular analgesia and rest.",
+            "Instruct patient to commence antibiotic only if fever/pain persist or worsen."
+          ]
+        }
+      }
+    ],
+    "default": {
+      "trace": { "status": "pass", "label": "Provide self-care and analgesia advice." },
+      "result": {
+        "outcome": "advice",
+        "urgency": "routine",
+        "headline": "Self-care advice for mild acute otitis media",
+        "summary": "Symptoms mild - provide analgesia and watchful waiting guidance.",
+        "actions": [
+          "Recommend regular paracetamol or ibuprofen (if suitable).",
+          "Advise rest, fluids, and avoidance of water entry into affected ear.",
+          "Arrange follow-up if symptoms persist beyond 1 week."],
+        "safetyNet": [
+          "Seek urgent care if swelling develops behind the ear or patient becomes systemically unwell.",
+          "Return if pain worsens or discharge appears."
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#eff4ff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0a0c12" />
+    <script>
+      (function () {
+        var root = document.documentElement;
+        var THEME_KEY = 'otcflow-theme';
+        var THEME_LOCK_KEY = 'otcflow-theme-lock';
+
+        function setTheme(theme) {
+          var normalized = theme === 'light' ? 'light' : 'dark';
+          root.classList.remove('theme-light', 'theme-dark', 'light', 'dark');
+          root.classList.add('theme-' + normalized, normalized);
+          root.dataset.theme = normalized;
+        }
+
+        function detectAutomaticTheme() {
+          var hour = new Date().getHours();
+          var isNight = hour >= 19 || hour < 7;
+          var prefersDark = false;
+          var prefersLight = false;
+
+          if (typeof window.matchMedia === 'function') {
+            try {
+              prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+              prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+            } catch (error) {
+              prefersDark = isNight;
+            }
+          }
+
+          if (prefersDark) {
+            return 'dark';
+          }
+
+          if (prefersLight) {
+            return 'light';
+          }
+
+          return isNight ? 'dark' : 'light';
+        }
+
+        var locked = false;
+        var storedTheme = null;
+
+        try {
+          locked = localStorage.getItem(THEME_LOCK_KEY) === 'true';
+          storedTheme = locked ? localStorage.getItem(THEME_KEY) : null;
+        } catch (error) {
+          locked = false;
+          storedTheme = null;
+        }
+
+        if (storedTheme !== 'light' && storedTheme !== 'dark') {
+          storedTheme = null;
+        }
+
+        setTheme(storedTheme || detectAutomaticTheme());
+        root.dataset.themeLock = locked ? 'true' : 'false';
+      })();
+    </script>
+    <link rel="icon" href="assets/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="assets/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter:opsz,wght@14..32,400..700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter:opsz,wght@14..32,400..700&display=swap"
+    />
+    <link rel="stylesheet" href="assets/css/design.css" />
+    <link rel="stylesheet" href="assets/css/theme.css" />
+    <meta
+      name="description"
+      content="Offline-ready UK community pharmacy OTC decision support assistant with rule packs, audit trails, and documentation generation."
+    />
+    <meta property="og:title" content="OTC Flow · UK Community Pharmacy Decision Support" />
+    <meta
+      property="og:description"
+      content="Interactive Pharmacy First and OTC decision support with deterministic rule packs and safety netting."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="assets/favicon.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="OTC Flow · UK Community Pharmacy Decision Support" />
+    <meta
+      name="twitter:description"
+      content="Interactive Pharmacy First and OTC decision support with deterministic rule packs and safety netting."
+    />
+    <meta name="twitter:image" content="assets/favicon.png" />
+    <title>OTC Flow · UK Community Pharmacy Decision Support</title>
+  </head>
+  <body>
+    <div class="page shell page-sheen">
+      <div id="sr-status" class="visually-hidden" aria-live="polite"></div>
+      <div class="wrapper">
+        <header class="hero surface-card motion-fade-in" aria-labelledby="hero-title">
+          <div class="surface-content stack">
+            <div class="hero__top cluster cluster--end">
+              <div class="hero-controls toolbar">
+                <span class="chip chip--outline">Rule packs v1</span>
+                <span class="chip chip--outline">Offline first</span>
+                <span class="chip chip--outline">Audit ready notes</span>
+              </div>
+              <div class="theme-controls" role="group" aria-label="Colour theme controls">
+                <button type="button" class="theme-toggle" id="theme-toggle" aria-pressed="true">
+                  <span class="toggle-track" aria-hidden="true">
+                    <span class="toggle-thumb"></span>
+                  </span>
+                  <span class="toggle-label">Dark mode</span>
+                </button>
+                <label class="theme-lock" for="theme-lock">
+                  <input type="checkbox" id="theme-lock" />
+                  <span class="theme-lock__label">Lock theme</span>
+                </label>
+              </div>
+            </div>
+            <div class="hero__body stack stack--tight">
+              <span class="hero__eyebrow">Interactive consultation assistant</span>
+              <h1 id="hero-title">OTC Flow - UK Community Pharmacy Decision Support</h1>
+              <p class="hero__lede">
+                Capture intake, evaluate rule packs, and generate auditable consultation notes without leaving the browser.
+              </p>
+              <div class="hero__meta">
+                <span class="hero__version">Prototype 0.2.0</span>
+                <span aria-hidden="true" class="hero__meta-divider">·</span>
+                <span class="hero__timestamp">Rule set last updated 2025-02-12</span>
+              </div>
+            </div>
+            <div class="hero__actions cluster">
+              <a class="btn btn--primary" href="#intake">Start consultation</a>
+              <a class="btn btn--secondary" href="#rule-library">View rule library</a>
+              <a class="btn btn--secondary" href="docs/feasibility.md">Read feasibility notes</a>
+            </div>
+            <p class="hero__note">
+              All logic runs locally. Load a scenario, tailor intake, and copy the generated consultation note into PharmOutcomes
+              or Sonar without network access.
+            </p>
+          </div>
+        </header>
+      </div>
+
+      <main class="wrapper consultation-layout" id="intake">
+        <section class="surface-card motion-slide-up intake-shell" aria-labelledby="intake-heading">
+          <div class="surface-content stack">
+            <div class="stack stack--tight">
+              <h2 id="intake-heading">Consultation intake</h2>
+              <p class="muted">
+                Capture patient demographics, presenting complaint, and rule pack specific findings. Clarifier chips highlight
+                data required before a recommendation is issued.
+              </p>
+            </div>
+            <div class="toolbar">
+              <div id="scenario-buttons" class="cluster" aria-label="Load sample scenarios"></div>
+              <button type="button" class="btn btn--secondary" id="reset-intake">Clear intake</button>
+            </div>
+            <div class="patient-grid" aria-label="Patient details">
+              <div class="patient-field">
+                <label for="patient-age">Age</label>
+                <input type="number" id="patient-age" name="patient-age" min="0" max="120" inputmode="numeric" />
+              </div>
+              <div class="patient-field">
+                <label for="patient-sex">Sex</label>
+                <select id="patient-sex" name="patient-sex">
+                  <option value="">Select</option>
+                  <option value="female">Female</option>
+                  <option value="male">Male</option>
+                  <option value="other">Other / prefers not to say</option>
+                </select>
+              </div>
+              <div class="patient-field">
+                <label for="patient-pregnant">Pregnancy status</label>
+                <select id="patient-pregnant" name="patient-pregnant">
+                  <option value="unknown">Unknown</option>
+                  <option value="no">Not pregnant</option>
+                  <option value="yes">Pregnant</option>
+                </select>
+              </div>
+              <div class="patient-field">
+                <label for="patient-postcode">Postcode (optional)</label>
+                <input type="text" id="patient-postcode" name="patient-postcode" maxlength="8" autocomplete="postal-code" />
+              </div>
+            </div>
+            <div class="stack stack--tight">
+              <label for="complaint-select" class="question__label">Presenting complaint</label>
+              <select id="complaint-select" name="complaint-select" class="question__input"></select>
+            </div>
+            <div class="stack stack--tight">
+              <label for="rule-pack-select" class="question__label">Rule pack</label>
+              <select id="rule-pack-select" name="rule-pack-select" class="question__input"></select>
+            </div>
+            <div class="cluster" id="missing-chips" aria-live="polite"></div>
+            <div id="intake-sections" class="stack"></div>
+          </div>
+        </section>
+
+        <section class="surface-card motion-slide-up transcript-shell" aria-labelledby="transcript-heading">
+          <div class="surface-content stack">
+            <div class="stack stack--tight">
+              <h2 id="transcript-heading">Transcript parsing</h2>
+              <p class="muted">
+                Paste consultation transcripts to drive natural language parsing and speed up the intake process.
+              </p>
+            </div>
+            <div class="transcript-editor stack">
+              <label for="nlp-transcript" class="question__label">Consultation transcript</label>
+              <textarea
+                id="nlp-transcript"
+                name="nlp-transcript"
+                spellcheck="false"
+                aria-describedby="transcript-status transcript-feedback"
+              ></textarea>
+            </div>
+            <div class="toolbar" role="group" aria-label="Transcript actions">
+              <button
+                type="button"
+                class="btn btn--primary"
+                id="parse-transcript"
+                aria-controls="nlp-transcript transcript-status transcript-feedback"
+              >
+                Parse transcript
+              </button>
+              <button
+                type="button"
+                class="btn btn--secondary"
+                id="clear-transcript"
+                aria-controls="nlp-transcript"
+              >
+                Clear transcript
+              </button>
+            </div>
+            <div class="transcript-status stack" aria-live="polite">
+              <p id="transcript-status" class="muted" role="status">Parser idle.</p>
+              <p id="transcript-feedback" class="muted"></p>
+            </div>
+          </div>
+        </section>
+
+        <section class="surface-card motion-slide-up" aria-labelledby="decision-heading">
+          <div class="surface-content stack">
+            <h2 id="decision-heading">Decision support output</h2>
+            <div id="decision-card" class="decision-card" data-outcome="incomplete">
+              <div>
+                <div id="decision-status" class="decision-status">Awaiting intake</div>
+                <p id="decision-summary" class="decision-summary"></p>
+              </div>
+              <div class="decision-block">
+                <h3>Decision trace</h3>
+                <ul id="decision-trace" class="trace-list"></ul>
+              </div>
+              <div class="decision-block">
+                <h3>Recommended actions</h3>
+                <ul id="actions-list"></ul>
+              </div>
+              <div class="decision-block is-hidden" id="warnings-block">
+                <h3>Warnings</h3>
+                <ul id="warnings-list"></ul>
+              </div>
+              <div class="decision-block">
+                <h3>Safety netting</h3>
+                <ul id="safety-net-list"></ul>
+              </div>
+            </div>
+            <div class="documentation-shell">
+              <div class="toolbar">
+                <h3>Consultation note</h3>
+                <button type="button" class="btn btn--secondary" id="copy-documentation">Copy consultation note</button>
+              </div>
+              <textarea id="documentation-output" spellcheck="false" aria-label="Consultation documentation"></textarea>
+              <p id="governance-summary" class="governance-meta"></p>
+            </div>
+          </div>
+        </section>
+
+        <aside class="surface-card motion-slide-up" id="rule-library" aria-labelledby="rule-pack-heading">
+          <div class="surface-content stack">
+            <h2 id="rule-pack-heading">Rule library</h2>
+            <p class="muted">
+              View the inclusion criteria, exclusions, and safety netting for the active pathway. Rule packs are versioned and
+              ship with effective dates to support governance audits.
+            </p>
+            <p id="rule-pack-meta" class="governance-meta">No pathway selected</p>
+            <div id="rule-pack-details" class="stack"></div>
+          </div>
+        </aside>
+      </main>
+
+      <section class="wrapper motion-slide-up" aria-labelledby="roadmap-heading">
+        <div class="surface-card">
+          <div class="surface-content stack">
+            <h2 id="roadmap-heading">Roadmap checkpoints</h2>
+            <ol class="list">
+              <li>Expand rule library to cover the remaining Pharmacy First pathways (earache, sinusitis, shingles, impetigo).</li>
+              <li>Implement YAML rule pack compiler with schema validation and signed bundle publishing.</li>
+              <li>Add offline cache manifest plus version banner to flag newer packs when the device reconnects.</li>
+            </ol>
+            <p class="muted">
+              Feedback is welcome via GitHub issues. The assistant is designed for offline pharmacy use; no consultation data is
+              transmitted or retained.
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script type="module" src="assets/js/otc-tool.js"></script>
+    <script>
+      (function () {
+        var root = document.documentElement;
+        var THEME_KEY = 'otcflow-theme';
+        var THEME_LOCK_KEY = 'otcflow-theme-lock';
+        var toggle = document.getElementById('theme-toggle');
+        var lock = document.getElementById('theme-lock');
+
+        if (!toggle || !lock) {
+          return;
+        }
+
+        function updateToggleLabel(theme) {
+          var label = theme === 'light' ? 'Light mode' : 'Dark mode';
+          var pressed = theme !== 'light';
+          toggle.setAttribute('aria-pressed', String(pressed));
+          var textNode = toggle.querySelector('.toggle-label');
+          if (textNode) {
+            textNode.textContent = label;
+          }
+        }
+
+        function setTheme(theme, persist) {
+          var normalized = theme === 'light' ? 'light' : 'dark';
+          root.classList.remove('theme-light', 'theme-dark', 'light', 'dark');
+          root.classList.add('theme-' + normalized, normalized);
+          root.dataset.theme = normalized;
+          updateToggleLabel(normalized);
+          if (!persist) {
+            return;
+          }
+          try {
+            localStorage.setItem(THEME_KEY, normalized);
+          } catch (error) {
+            /* ignore */
+          }
+        }
+
+        function setLockState(locked) {
+          root.dataset.themeLock = locked ? 'true' : 'false';
+          try {
+            localStorage.setItem(THEME_LOCK_KEY, locked ? 'true' : 'false');
+            if (!locked) {
+              localStorage.removeItem(THEME_KEY);
+            }
+          } catch (error) {
+            /* ignore */
+          }
+        }
+
+        var currentTheme = root.dataset.theme === 'light' ? 'light' : 'dark';
+        updateToggleLabel(currentTheme);
+        lock.checked = root.dataset.themeLock === 'true';
+
+        toggle.addEventListener('click', function () {
+          if (root.dataset.themeLock === 'true') {
+            return;
+          }
+          currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          setTheme(currentTheme, true);
+        });
+
+        lock.addEventListener('change', function () {
+          var locked = lock.checked;
+          setLockState(locked);
+          if (!locked) {
+            setTheme(currentTheme, false);
+          } else {
+            setTheme(currentTheme, true);
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

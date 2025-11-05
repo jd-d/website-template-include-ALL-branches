@@ -1,0 +1,32 @@
+[
+  {
+    "id": "uti_female_16_64",
+    "title": "Uncomplicated UTI (Female 16-64)",
+    "summary": "Pharmacy First supply pathway for Nitrofurantoin MR when criteria are met.",
+    "version": "1.0.0",
+    "effective": "2025-01-01",
+    "presentation": "urinary_symptoms",
+    "pathway": "Pharmacy First England",
+    "file": "uti_female_16_64.json"
+  },
+  {
+    "id": "sore_throat_adult",
+    "title": "Sore throat (FeverPAIN-guided)",
+    "summary": "Determines referral triggers and delayed antibiotic supply using FeverPAIN criteria.",
+    "version": "1.0.0",
+    "effective": "2025-01-01",
+    "presentation": "upper_respiratory",
+    "pathway": "Pharmacy First England",
+    "file": "sore_throat_adult.json"
+  },
+  {
+    "id": "allergic_rhinitis",
+    "title": "Allergic rhinitis (Seasonal)",
+    "summary": "Guides OTC antihistamine and nasal steroid supply with safety netting.",
+    "version": "1.0.0",
+    "effective": "2025-01-01",
+    "presentation": "allergy",
+    "pathway": "OTC High Volume",
+    "file": "allergic_rhinitis.json"
+  }
+]

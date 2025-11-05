@@ -1,0 +1,381 @@
+{
+  "id": "allergic_rhinitis",
+  "title": "Allergic rhinitis (Seasonal)",
+  "pathway": "OTC High Volume",
+  "version": "1.0.0",
+  "effective": "2025-01-01",
+  "presentation": "allergy",
+  "summary": "Guides OTC antihistamine and intranasal steroid supply with referral safety nets.",
+  "intake": {
+    "defaults": {
+      "patient": { "sex": "unknown", "pregnant": "unknown" },
+      "presentation": "allergy",
+      "symptoms": {
+        "sneezing": "unknown",
+        "itchy_eyes": "unknown",
+        "nasal_congestion": "unknown",
+        "seasonal_pattern": "unknown",
+        "duration_weeks": null,
+        "impact_score": 5
+      },
+      "history": {
+        "asthma": "unknown",
+        "glaucoma": "unknown"
+      },
+      "flags": {
+        "epistaxis": "unknown",
+        "unilateral": "unknown",
+        "wheezing": "unknown"
+      },
+      "meds_allergies": {
+        "current_meds": ""
+      },
+      "notes": ""
+    },
+    "required": [
+      "patient.age",
+      "symptoms.sneezing",
+      "symptoms.itchy_eyes",
+      "symptoms.nasal_congestion",
+      "symptoms.seasonal_pattern",
+      "symptoms.duration_weeks",
+      "flags.epistaxis",
+      "flags.unilateral",
+      "flags.wheezing"
+    ],
+    "sections": [
+      {
+        "id": "patient",
+        "title": "Patient details",
+        "layout": "two-col",
+        "fields": [
+          {
+            "id": "age",
+            "label": "Age",
+            "type": "number",
+            "path": "patient.age",
+            "min": 0,
+            "max": 120,
+            "required": true
+          },
+          {
+            "id": "pregnant",
+            "label": "Pregnancy status",
+            "type": "tri-state",
+            "path": "patient.pregnant",
+            "options": [
+              { "value": true, "label": "Pregnant" },
+              { "value": false, "label": "Not pregnant" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "symptoms",
+        "title": "Current symptoms",
+        "layout": "two-col",
+        "fields": [
+          {
+            "id": "sneezing",
+            "label": "Sneezing",
+            "type": "tri-state",
+            "path": "symptoms.sneezing",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          },
+          {
+            "id": "itchy_eyes",
+            "label": "Itchy or watery eyes",
+            "type": "tri-state",
+            "path": "symptoms.itchy_eyes",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          },
+          {
+            "id": "nasal_congestion",
+            "label": "Nasal congestion",
+            "type": "tri-state",
+            "path": "symptoms.nasal_congestion",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          },
+          {
+            "id": "seasonal_pattern",
+            "label": "Seasonal pattern or trigger identified",
+            "type": "tri-state",
+            "path": "symptoms.seasonal_pattern",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          },
+          {
+            "id": "duration_weeks",
+            "label": "Duration in weeks",
+            "type": "number",
+            "path": "symptoms.duration_weeks",
+            "min": 0,
+            "max": 52,
+            "required": true
+          },
+          {
+            "id": "impact_score",
+            "label": "Impact score (0 none – 10 severe)",
+            "type": "number",
+            "path": "symptoms.impact_score",
+            "min": 0,
+            "max": 10
+          }
+        ]
+      },
+      {
+        "id": "flags",
+        "title": "Red flag screening",
+        "layout": "two-col",
+        "fields": [
+          {
+            "id": "epistaxis",
+            "label": "Recurrent epistaxis",
+            "type": "tri-state",
+            "path": "flags.epistaxis",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          },
+          {
+            "id": "unilateral",
+            "label": "Unilateral symptoms or obstruction",
+            "type": "tri-state",
+            "path": "flags.unilateral",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          },
+          {
+            "id": "wheezing",
+            "label": "Wheeze or significant asthma",
+            "type": "tri-state",
+            "path": "flags.wheezing",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "history",
+        "title": "Relevant history",
+        "fields": [
+          {
+            "id": "asthma",
+            "label": "Asthma requiring preventer inhaler",
+            "type": "tri-state",
+            "path": "history.asthma",
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          },
+          {
+            "id": "glaucoma",
+            "label": "Glaucoma",
+            "type": "tri-state",
+            "path": "history.glaucoma",
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "notes",
+        "title": "Notes",
+        "fields": [
+          {
+            "id": "notes",
+            "label": "Notes",
+            "type": "textarea",
+            "path": "notes"
+          }
+        ]
+      }
+    ]
+  },
+  "gates": [
+    {
+      "id": "age",
+      "description": "Refer children under 6 years for GP assessment.",
+      "condition": { "lt": ["patient.age", 6] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "routine_gp",
+        "reason": "Child under 6 years requires GP assessment before OTC treatment."
+      }
+    },
+    {
+      "id": "pregnancy",
+      "description": "Pregnancy requires tailored product selection.",
+      "condition": { "equals": ["patient.pregnant", true] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "pharmacist_same_day",
+        "reason": "Pregnancy recorded – confirm safe treatment plan with prescriber."
+      }
+    },
+    {
+      "id": "epistaxis",
+      "description": "Recurrent epistaxis needs medical investigation.",
+      "condition": { "equals": ["flags.epistaxis", true] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "routine_gp",
+        "reason": "Recurrent epistaxis reported."
+      }
+    },
+    {
+      "id": "unilateral",
+      "description": "Unilateral symptoms require ENT review.",
+      "condition": { "equals": ["flags.unilateral", true] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "routine_gp",
+        "reason": "Unilateral obstruction or discharge present."
+      }
+    },
+    {
+      "id": "wheezing",
+      "description": "Significant wheeze or uncontrolled asthma needs GP review.",
+      "condition": { "equals": ["flags.wheezing", true] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "urgent_gp",
+        "reason": "Wheeze or poorly controlled asthma reported."
+      }
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "combo_therapy",
+      "title": "Non-sedating antihistamine plus intranasal steroid",
+      "condition": {
+        "all": [
+          { "equals": ["symptoms.nasal_congestion", true] },
+          { "gte": ["symptoms.duration_weeks", 4] }
+        ]
+      },
+      "outcome": {
+        "type": "supply",
+        "product": "Loratadine 10 mg tablets + Fluticasone 50 mcg nasal spray",
+        "quantity": "30 tablets + 60 dose spray",
+        "directions": "Take one loratadine tablet daily. Use two sprays into each nostril once daily until symptoms controlled.",
+        "counselling": [
+          "Demonstrate nasal spray technique and prime before first use.",
+          "Advise onset of steroid spray is 3-4 days and to continue through the season.",
+          "Review asthma control and arrange GP follow-up if symptoms of wheeze persist."
+        ]
+      }
+    },
+    {
+      "id": "antihistamine_only",
+      "title": "Non-sedating antihistamine",
+      "condition": {
+        "any": [
+          { "equals": ["symptoms.sneezing", true] },
+          { "equals": ["symptoms.itchy_eyes", true] }
+        ]
+      },
+      "outcome": {
+        "type": "supply",
+        "product": "Cetirizine 10 mg tablets",
+        "quantity": "30 tablets",
+        "directions": "Take one tablet daily during exposure period.",
+        "counselling": [
+          "Advise once daily dosing at the same time each day.",
+          "Discuss drowsiness risk at higher doses and avoidance with alcohol.",
+          "Encourage allergen avoidance and use of barrier balms around nostrils."
+        ]
+      }
+    },
+    {
+      "id": "self_care",
+      "title": "Self-care and trigger management",
+      "condition": {
+        "all": [
+          { "equals": ["symptoms.sneezing", false] },
+          { "equals": ["symptoms.itchy_eyes", false] },
+          { "equals": ["symptoms.nasal_congestion", false] }
+        ]
+      },
+      "outcome": {
+        "type": "advice",
+        "advice": [
+          "Recommend saline nasal rinses and allergen avoidance strategies.",
+          "Advise to monitor for symptom escalation or new red flag features.",
+          "Suggest follow-up if symptoms persist beyond two weeks despite self-care."
+        ]
+      }
+    }
+  ],
+  "safetyNetting": [
+    "Seek urgent care for shortness of breath, chest tightness, or severe wheeze.",
+    "Arrange GP review if symptoms fail to improve after 2 weeks of regular therapy.",
+    "Escalate immediately if epistaxis becomes heavy or unilateral obstruction develops."
+  ],
+  "documentation": {
+    "summary": "OTC allergic rhinitis consultation with symptom-directed supply.",
+    "sections": [
+      {
+        "title": "Assessment",
+        "template": [
+          "Symptoms: {{symptomSummary}} (duration {{symptoms.duration_weeks}} weeks).",
+          "Red flag screen: {{redFlagSummary}}."
+        ]
+      },
+      {
+        "title": "Plan",
+        "template": [
+          "Decision outcome: {{decisionSummary}}."
+        ]
+      },
+      {
+        "title": "Safety netting",
+        "template": [
+          "Advice given: {{safetyNettingList}}."
+        ]
+      },
+      {
+        "title": "Notes",
+        "template": [
+          "Additional notes: {{notes}}"
+        ]
+      }
+    ]
+  }
+}

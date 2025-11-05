@@ -1,0 +1,306 @@
+{
+  "meta": {
+    "id": "otc_constipation",
+    "name": "Functional constipation (OTC)",
+    "version": "1.0.0",
+    "effectiveFrom": "2025-11-02",
+    "lastReviewed": "2025-11-01",
+    "jurisdiction": "England",
+    "service": "OTC self-care"
+  },
+  "complaint": {
+    "id": "otc_constipation",
+    "label": "Constipation"
+  },
+  "description": "Rule pack to support OTC macrogol supply and lifestyle counselling for uncomplicated constipation.",
+  "inclusion": [
+    "Adults and young people aged 12 years and over with gradual onset constipation.",
+    "No rectal bleeding, acute abdominal pain, or unexplained weight loss.",
+    "Symptoms present for less than 4 weeks without red flags."
+  ],
+  "exclusion": [
+    "Sudden severe constipation with abdominal pain or vomiting.",
+    "Rectal bleeding or unexplained weight loss.",
+    "Known bowel obstruction or suspected secondary cause requiring medical assessment.",
+    "Pregnancy where prescriber review is required before laxative supply."
+  ],
+  "safetyNetting": [
+    "Seek urgent care if abdominal pain, vomiting, or rectal bleeding develops.",
+    "Arrange GP review if constipation persists beyond 4 weeks despite treatment.",
+    "Return if laxatives cause diarrhoea, cramping, or electrolyte disturbance symptoms."
+  ],
+  "sections": [
+    {
+      "id": "red_flags",
+      "title": "Red flags",
+      "type": "rapid_screen",
+      "questions": [
+        {
+          "id": "suddenOnset",
+          "type": "boolean",
+          "label": "Sudden onset with severe abdominal pain",
+          "required": true,
+          "flagType": "red"
+        },
+        {
+          "id": "rectalBleeding",
+          "type": "boolean",
+          "label": "Rectal bleeding",
+          "required": true,
+          "flagType": "red"
+        },
+        {
+          "id": "unexplainedWeightLoss",
+          "type": "boolean",
+          "label": "Unexplained weight loss",
+          "required": false,
+          "flagType": "red"
+        }
+      ]
+    },
+    {
+      "id": "symptoms",
+      "title": "Symptom profile",
+      "type": "questionnaire",
+      "questions": [
+        {
+          "id": "associatedSymptoms",
+          "type": "multi_select",
+          "label": "Associated symptoms",
+          "options": [
+            { "value": "hard_stools", "label": "Hard or pellet-like stools" },
+            { "value": "straining", "label": "Straining" },
+            { "value": "bloating", "label": "Bloating" },
+            { "value": "pain", "label": "Abdominal pain" },
+            { "value": "incomplete_emptying", "label": "Sense of incomplete emptying" }
+          ],
+          "required": true,
+          "helper": "Select all symptoms the patient reports."
+        },
+        {
+          "id": "durationDays",
+          "type": "number",
+          "label": "Duration of symptoms (days)",
+          "min": 0,
+          "max": 60,
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "title": "History",
+      "type": "questionnaire",
+      "questions": [
+        {
+          "id": "recentOpioid",
+          "type": "boolean",
+          "label": "Recent or ongoing opioid use",
+          "required": false
+        },
+        {
+          "id": "dietaryChanges",
+          "type": "select",
+          "label": "Lifestyle factor most likely contributing",
+          "options": [
+            { "value": "low_fibre", "label": "Low fibre diet" },
+            { "value": "dehydration", "label": "Low fluid intake" },
+            { "value": "reduced_activity", "label": "Reduced physical activity" },
+            { "value": "travel", "label": "Recent travel" },
+            { "value": "none", "label": "None identified" }
+          ],
+          "required": false
+        },
+        {
+          "id": "activityLevel",
+          "type": "select",
+          "label": "Current activity level",
+          "options": [
+            { "value": "normal", "label": "Normal" },
+            { "value": "reduced", "label": "Reduced" }
+          ],
+          "required": false
+        }
+      ]
+    }
+  ],
+  "intake": {
+    "required": {
+      "patient": ["age"],
+      "answers": ["associatedSymptoms", "durationDays"]
+    }
+  },
+  "logic": {
+    "derived": [
+      {
+        "id": "chronicCourse",
+        "expression": { ">=": [ { "var": "answers.durationDays" }, 14 ] }
+      },
+      {
+        "id": "opioidRelated",
+        "expression": {
+          "and": [
+            { "==": [ { "var": "answers.recentOpioid" }, true ] },
+            { ">=": [ { "var": "answers.durationDays" }, 3 ] }
+          ]
+        }
+      },
+      {
+        "id": "hasPain",
+        "expression": { "includes": [ { "var": "answers.associatedSymptoms" }, "pain" ] }
+      }
+    ],
+    "checks": [
+      {
+        "id": "age_range",
+        "description": "Age 12 years or over",
+        "expression": { ">=": [ { "var": "patient.age" }, 12 ] },
+        "pass": { "status": "pass", "label": "Age within OTC constipation guidance." },
+        "fail": {
+          "status": "fail",
+          "label": "Under 12 years - refer to GP/health visitor.",
+          "result": {
+            "outcome": "refer",
+            "urgency": "routine",
+            "headline": "Refer - age under 12",
+            "summary": "Paediatric constipation should be managed via GP/health visitor pathways.",
+            "actions": ["Signpost to GP for paediatric dosing guidance and red flag review."],
+            "referral": {
+              "destination": "GP",
+              "reason": "Constipation in child under 12"
+            }
+          }
+        }
+      }
+    ],
+    "advice": [
+      {
+        "id": "low_fibre_advice",
+        "expression": { "==": [ { "var": "answers.dietaryChanges" }, "low_fibre" ] },
+        "trace": { "status": "info", "label": "Low fibre intake identified." },
+        "actions": [
+          "Advise gradual increase in wholegrain cereals, fruit, and vegetables.",
+          "Encourage aiming for 5 portions of fruit/veg per day with adequate fluids."
+        ]
+      },
+      {
+        "id": "dehydration_advice",
+        "expression": { "==": [ { "var": "answers.dietaryChanges" }, "dehydration" ] },
+        "trace": { "status": "info", "label": "Low fluid intake contributing." },
+        "actions": [
+          "Promote 6-8 glasses of water/herbal tea daily unless contraindicated.",
+          "Limit caffeine/alcohol which may worsen dehydration."
+        ]
+      },
+      {
+        "id": "reduced_activity_advice",
+        "expression": { "==": [ { "var": "answers.dietaryChanges" }, "reduced_activity" ] },
+        "trace": { "status": "info", "label": "Reduced activity contributing." },
+        "actions": ["Encourage gentle exercise such as daily walking where safe."]
+      },
+      {
+        "id": "pain_caution",
+        "expression": {
+          "and": [
+            { "==": [ { "var": "derived.hasPain" }, true ] },
+            { ">": [ { "var": "answers.durationDays" }, 7 ] }
+          ]
+        },
+        "warnings": ["Persistent abdominal pain - ensure escalation if no improvement in 48 hours."],
+        "trace": { "status": "warn", "label": "Abdominal pain present with prolonged symptoms." }
+      }
+    ],
+    "outcomes": [
+      {
+        "id": "urgent_red_flags",
+        "description": "Urgent red flag symptoms",
+        "expression": {
+          "or": [
+            { "==": [ { "var": "answers.suddenOnset" }, true ] },
+            { "==": [ { "var": "answers.rectalBleeding" }, true ] },
+            { "==": [ { "var": "answers.unexplainedWeightLoss" }, true ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "fail", "label": "Red flag constipation presentation - urgent referral." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "urgent",
+          "headline": "Urgent referral - red flag symptoms",
+          "summary": "Escalate for immediate medical assessment due to red flags.",
+          "actions": ["Arrange urgent care/A&E review and advise nil by mouth until assessed."],
+          "referral": {
+            "destination": "Urgent care / A&E",
+            "reason": "Constipation with red flag symptom"
+          }
+        }
+      },
+      {
+        "id": "opioid_induced",
+        "description": "Possible opioid-induced constipation",
+        "expression": { "==": [ { "var": "derived.opioidRelated" }, true ] },
+        "trace": {
+          "pass": { "status": "warn", "label": "Opioid use contributing - consider prescriber review." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "routine",
+          "headline": "Refer - opioid-associated constipation",
+          "summary": "Coordinate with prescriber for bowel regimen and opioid review.",
+          "actions": [
+            "Contact GP/prescriber to review opioid dose and consider stimulant laxative.",
+            "Provide interim macrogol supply if appropriate while awaiting review."
+          ],
+          "referral": {
+            "destination": "GP",
+            "reason": "Opioid-induced constipation"
+          }
+        }
+      },
+      {
+        "id": "chronic_course",
+        "description": "Symptoms lasting 14 days or more",
+        "expression": { "==": [ { "var": "derived.chronicCourse" }, true ] },
+        "trace": {
+          "pass": { "status": "warn", "label": "Symptoms ≥14 days - consider GP review." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "routine",
+          "headline": "Refer - persistent constipation",
+          "summary": "Symptoms beyond 2 weeks despite self-care require GP assessment.",
+          "actions": ["Arrange GP appointment and advise patient to maintain fluids and fibre in the interim."],
+          "referral": {
+            "destination": "GP",
+            "reason": "Constipation persisting ≥14 days"
+          }
+        }
+      }
+    ],
+    "default": {
+      "trace": { "status": "pass", "label": "Criteria met for OTC constipation support." },
+      "result": {
+        "outcome": "supply",
+        "urgency": "routine",
+        "headline": "Supply macrogol sachets and lifestyle plan",
+        "summary": "Provide macrogol and reinforce hydration, fibre, and activity guidance.",
+        "actions": [
+          "Supply macrogol 13.8 g sachets: take one sachet daily, increasing to three sachets if needed (max 8/day).",
+          "Review response after 3 days and taper dose once regular soft stools achieved.",
+          "Reinforce lifestyle advice tailored to identified contributing factors."
+        ],
+        "supply": {
+          "product": "Macrogol 13.8 g oral powder sachets",
+          "dosage": "One sachet daily in 125 ml water; titrate up to three daily (max eight) as required",
+          "notes": "Separate macrogol doses from other oral medicines by at least 2 hours."
+        },
+        "safetyNet": [
+          "Return if no improvement within 7 days or if symptoms worsen.",
+          "Seek urgent care if vomiting, severe pain, or rectal bleeding develops.",
+          "Arrange GP review if reliance on maximum dose persists beyond 14 days."
+        ]
+      }
+    }
+  }
+}

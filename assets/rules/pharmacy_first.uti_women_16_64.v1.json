@@ -1,0 +1,298 @@
+{
+  "meta": {
+    "id": "uti_women_16_64",
+    "name": "Uncomplicated UTI (Women 16 to 64)",
+    "version": "1.2.0",
+    "effectiveFrom": "2025-03-01",
+    "lastReviewed": "2025-03-05",
+    "jurisdiction": "England",
+    "service": "Pharmacy First"
+  },
+  "complaint": {
+    "id": "urinary_symptoms",
+    "label": "Urinary symptoms"
+  },
+  "description": "Pharmacy First pathway for dysuria and frequency in non-pregnant women aged 16 to 64 with no systemic features.",
+  "inclusion": [
+    "Women aged 16 to 64 presenting with dysuria, frequency, or urgency.",
+    "Symptoms present for less than 28 days with no severe systemic illness.",
+    "Able to take Nitrofurantoin MR 100 mg twice daily for 3 days."
+  ],
+  "exclusion": [
+    "Pregnancy or suspected pregnancy.",
+    "Fever, loin pain, rigors, or visible haematuria.",
+    "Indwelling catheter, recurrent UTI, or known renal impairment.",
+    "Diabetes with poor control, immunocompromise, or urosepsis risk."
+  ],
+  "safetyNetting": [
+    "Seek urgent care if new fever, vomiting, flank pain, or systemic upset develops.",
+    "Contact the service if no improvement within 48 hours of starting treatment.",
+    "Attend emergency care if unable to pass urine, confused, or systemically unwell."
+  ],
+  "sections": [
+    {
+      "id": "symptoms",
+      "title": "Core urinary symptoms",
+      "questions": [
+        { "id": "dysuria", "type": "boolean", "label": "Pain or burning when passing urine", "required": true },
+        { "id": "frequency", "type": "boolean", "label": "Need to urinate more often than usual", "required": true },
+        { "id": "urgency", "type": "boolean", "label": "Urgency or difficulty holding urine", "required": false },
+        { "id": "visibleHaematuria", "type": "boolean", "label": "Visible blood in urine", "required": false, "flagType": "red" },
+        { "id": "fever", "type": "boolean", "label": "Fever or shivering", "required": false, "flagType": "red" },
+        { "id": "loinPain", "type": "boolean", "label": "Loin or flank pain", "required": false, "flagType": "red" },
+        { "id": "vaginalDischarge", "type": "boolean", "label": "Vaginal discharge", "required": false },
+        {
+          "id": "durationDays",
+          "type": "number",
+          "label": "Symptom duration (days)",
+          "min": 0,
+          "max": 60,
+          "helper": "Value used to confirm suitability for Pharmacy First supply.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "title": "History and risk factors",
+      "questions": [
+        {
+          "id": "recurrentUti",
+          "type": "boolean",
+          "label": "History of recurrent UTI",
+          "helper": "≥2 in 6 months or ≥3 in 12 months",
+          "required": false
+        },
+        { "id": "diabetes", "type": "boolean", "label": "Diabetes (poorly controlled)", "required": false },
+        {
+          "id": "renalImpairment",
+          "type": "select",
+          "label": "Known renal impairment",
+          "options": [
+            { "value": "no", "label": "No" },
+            { "value": "yes", "label": "Yes" },
+            { "value": "unknown", "label": "Unknown" }
+          ],
+          "required": false
+        },
+        { "id": "indwellingCatheter", "type": "boolean", "label": "Indwelling catheter in situ", "required": false },
+        { "id": "immunocompromised", "type": "boolean", "label": "Immunocompromised or frail", "required": false },
+        { "id": "recentUti", "type": "boolean", "label": "UTI treated within the last 4 weeks", "required": false }
+      ]
+    }
+  ],
+  "intake": {
+    "required": {
+      "patient": ["age", "sex", "pregnant"],
+      "answers": ["dysuria", "frequency", "durationDays"]
+    }
+  },
+  "logic": {
+    "derived": [
+      {
+        "id": "symptomCount",
+        "expression": {
+          "+": [
+            { "if": [ { "==": [ { "var": "answers.dysuria" }, true ] }, 1, 0 ] },
+            { "if": [ { "==": [ { "var": "answers.frequency" }, true ] }, 1, 0 ] },
+            { "if": [ { "==": [ { "var": "answers.urgency" }, true ] }, 1, 0 ] }
+          ]
+        }
+      }
+    ],
+    "checks": [
+      {
+        "id": "age_range",
+        "description": "Age between 16 and 64 years",
+        "expression": {
+          "and": [
+            { ">=": [ { "var": "patient.age" }, 16 ] },
+            { "<=": [ { "var": "patient.age" }, 64 ] }
+          ]
+        },
+        "pass": { "status": "pass", "label": "Age between 16 and 64 years." },
+        "fail": {
+          "status": "fail",
+          "label": "Age outside 16 to 64 years.",
+          "result": {
+            "outcome": "refer",
+            "urgency": "routine",
+            "headline": "Refer to GP - outside Pharmacy First age range",
+            "summary": "Age criteria for community supply are not met.",
+            "actions": ["Signpost to GP or urgent care as per local protocol."]
+          }
+        }
+      },
+      {
+        "id": "sex_female",
+        "description": "Patient is female",
+        "expression": { "==": [ { "var": "patient.sex" }, "female" ] },
+        "pass": { "status": "pass", "label": "Patient identifies as female." },
+        "fail": {
+          "status": "fail",
+          "label": "Only available for women.",
+          "result": {
+            "outcome": "refer",
+            "urgency": "routine",
+            "headline": "Refer - pathway designed for women aged 16 to 64",
+            "summary": "Presenting patient is outside the defined cohort.",
+            "actions": ["Refer to GP or appropriate service for assessment."]
+          }
+        }
+      },
+      {
+        "id": "pregnancy_exclusion",
+        "description": "Pregnancy excluded",
+        "expression": { "!=": [ { "var": "patient.pregnant" }, true ] },
+        "pass": { "status": "pass", "label": "Pregnancy excluded." },
+        "fail": {
+          "status": "fail",
+          "label": "Pregnancy is an exclusion.",
+          "result": {
+            "outcome": "refer",
+            "urgency": "routine",
+            "headline": "Refer to GP - pregnancy is excluded",
+            "summary": "Pregnant patients should be reviewed by their GP or midwife.",
+            "actions": ["Discuss referral urgency based on symptoms and arrange GP review."]
+          }
+        }
+      },
+      {
+        "id": "duration_within_range",
+        "description": "Symptoms less than 28 days",
+        "expression": {
+          "or": [
+            { "!": { "var": "answers.durationDays" } },
+            { "<=": [ { "var": "answers.durationDays" }, 28 ] }
+          ]
+        },
+        "pass": { "status": "pass", "label": "Duration recorded as {{answers.durationDays}} day(s)." },
+        "fail": {
+          "status": "fail",
+          "label": "Symptoms lasting longer than 28 days.",
+          "result": {
+            "outcome": "refer",
+            "urgency": "routine",
+            "headline": "Refer - symptom duration exceeds 28 days",
+            "summary": "Chronic symptoms require GP review before supply.",
+            "actions": ["Arrange GP assessment for persistent urinary symptoms."]
+          }
+        }
+      }
+    ],
+    "advice": [
+      {
+        "id": "pregnancy_unknown",
+        "expression": { "==": [ { "var": "patient.pregnant" }, null ] },
+        "warnings": ["Confirm pregnancy status before supply."],
+        "trace": { "status": "warn", "label": "Pregnancy status unknown - confirm before supply." }
+      },
+      {
+        "id": "renal_unknown",
+        "expression": { "==": [ { "var": "answers.renalImpairment" }, null ] },
+        "warnings": ["Renal function not confirmed - adjust choice accordingly."],
+        "trace": { "status": "warn", "label": "Renal function unknown." }
+      },
+      {
+        "id": "vaginal_discharge",
+        "expression": { "==": [ { "var": "answers.vaginalDischarge" }, true ] },
+        "warnings": ["Consider alternative diagnoses due to vaginal discharge."],
+        "trace": { "status": "warn", "label": "Vaginal discharge present - consider STI or vaginal infection." }
+      }
+    ],
+    "outcomes": [
+      {
+        "id": "urgent_red_flags",
+        "description": "Urgent red flag symptoms",
+        "expression": {
+          "or": [
+            { "==": [ { "var": "answers.fever" }, true ] },
+            { "==": [ { "var": "answers.loinPain" }, true ] },
+            { "==": [ { "var": "answers.visibleHaematuria" }, true ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "fail", "label": "Red flag symptom identified - urgent referral required." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "urgent",
+          "headline": "Urgent referral - red flag symptoms identified",
+          "summary": "Escalate to urgent care due to red flag symptoms.",
+          "actions": ["Escalate to urgent care or 999 according to severity."],
+          "referral": {
+            "destination": "Urgent care / 111 / GP",
+            "reason": "Red flag symptoms present"
+          }
+        }
+      },
+      {
+        "id": "exclusion_risks",
+        "description": "Exclusion risk factors present",
+        "expression": {
+          "or": [
+            { "==": [ { "var": "answers.recurrentUti" }, true ] },
+            { "==": [ { "var": "answers.diabetes" }, true ] },
+            { "==": [ { "var": "answers.indwellingCatheter" }, true ] },
+            { "==": [ { "var": "answers.immunocompromised" }, true ] },
+            { "==": [ { "var": "answers.recentUti" }, true ] },
+            { "==": [ { "var": "answers.renalImpairment" }, "yes" ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "fail", "label": "Exclusion criterion met - refer to GP." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "routine",
+          "headline": "Refer to GP - risk factors outside Pharmacy First scope",
+          "summary": "One or more exclusion factors recorded.",
+          "actions": ["Arrange GP review. Provide self-care advice while awaiting appointment."],
+          "referral": {
+            "destination": "GP",
+            "reason": "Risk factors present"
+          }
+        }
+      },
+      {
+        "id": "insufficient_symptoms",
+        "description": "Fewer than two core urinary symptoms",
+        "expression": { "<": [ { "var": "derived.symptomCount" }, 2 ] },
+        "trace": {
+          "pass": { "status": "warn", "label": "Fewer than two core urinary symptoms recorded." },
+          "fail": { "status": "pass", "label": "{{derived.symptomCount}} core urinary symptoms recorded." }
+        },
+        "result": {
+          "outcome": "advice",
+          "urgency": "routine",
+          "headline": "Provide self-care advice - diagnostic certainty low",
+          "summary": "Fewer than two core symptoms recorded; consider delayed referral.",
+          "actions": [
+            "Offer hydration and analgesia advice.",
+            "Consider urine dip where available.",
+            "Refer if symptoms worsen."
+          ]
+        }
+      }
+    ],
+    "default": {
+      "trace": { "status": "pass", "label": "All inclusion criteria satisfied." },
+      "result": {
+        "outcome": "supply",
+        "urgency": "routine",
+        "headline": "Supply Nitrofurantoin MR 100 mg twice daily for 3 days",
+        "summary": "Patient meets inclusion criteria with no exclusions detected.",
+        "actions": [
+          "Supply Nitrofurantoin MR 100 mg twice daily for 3 days.",
+          "Advise on hydration and analgesia (paracetamol or ibuprofen if suitable).",
+          "Counsel on avoiding sexual intercourse until symptoms resolve."
+        ],
+        "supply": {
+          "product": "Nitrofurantoin 100 mg modified release capsules",
+          "dosage": "1 capsule twice daily for 3 days with food",
+          "notes": "Check creatinine clearance ≥45 mL/min before supply."
+        }
+      }
+    }
+  }
+}

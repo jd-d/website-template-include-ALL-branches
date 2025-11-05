@@ -1,0 +1,75 @@
+{
+  "issuedAt": "2025-11-02T09:00:00Z",
+  "packs": [
+    {
+      "id": "uti_women_16_64",
+      "name": "Uncomplicated UTI (Women 16 to 64)",
+      "version": "1.2.0",
+      "path": "assets/rules/pharmacy_first.uti_women_16_64.v1.json",
+      "checksum": "sha256-6b0faf3cd1c5682fb1540c7956c28df8f2752eaef86f904a7971615356259e8e"
+    },
+    {
+      "id": "sore_throat_feverpain",
+      "name": "Sore throat (FeverPAIN score)",
+      "version": "1.1.0",
+      "path": "assets/rules/pharmacy_first.sore_throat_feverpain.v1.json",
+      "checksum": "sha256-acd04e7b5cd0ef87e6b5fbf2f24cddf629276e0804e60ccb15460482020456a9"
+    },
+    {
+      "id": "acute_sinusitis",
+      "name": "Acute sinusitis",
+      "version": "1.0.0",
+      "path": "assets/rules/pharmacy_first.acute_sinusitis.v1.json",
+      "checksum": "sha256-3fbeb830a578e6c2b14d251a5b1be804db4e68d7c2d9738300d77140340b7206"
+    },
+    {
+      "id": "earache_aom",
+      "name": "Earache / Acute otitis media",
+      "version": "1.0.0",
+      "path": "assets/rules/pharmacy_first.earache_aom.v1.json",
+      "checksum": "sha256-319feeb47b7bd0c5cf2e9add8f63c9700c5bc4dbb44b3b6682da32b1f21fe2bb"
+    },
+    {
+      "id": "impetigo",
+      "name": "Impetigo",
+      "version": "1.0.0",
+      "path": "assets/rules/pharmacy_first.impetigo.v1.json",
+      "checksum": "sha256-821325af67e3f7a111e3a5d5820b897494cbeed8a8fd8ba768f0071edb1fe03b"
+    },
+    {
+      "id": "infected_insect_bite",
+      "name": "Infected insect bite",
+      "version": "1.0.0",
+      "path": "assets/rules/pharmacy_first.infected_insect_bite.v1.json",
+      "checksum": "sha256-b2a4dc425831a72af51eae7e9a417f5e8e107884b8f828764e5614fb760f2783"
+    },
+    {
+      "id": "shingles",
+      "name": "Shingles (Herpes zoster)",
+      "version": "1.0.0",
+      "path": "assets/rules/pharmacy_first.shingles.v1.json",
+      "checksum": "sha256-e3330d81a743ecc3bb147a35ff99d0a56280ff4fea76ba774bd19dba00b38d53"
+    },
+    {
+      "id": "otc_cough_cold",
+      "name": "Common cold and nasal congestion",
+      "version": "1.0.0",
+      "path": "assets/rules/otc.cough_cold.v1.json",
+      "checksum": "sha256-8e5cfdb618d4fdb7d75601240a0db570fe046af94ddef10d00251602fb3f23ec"
+    },
+    {
+      "id": "otc_diarrhoea",
+      "name": "Acute diarrhoea (OTC)",
+      "version": "1.0.0",
+      "path": "assets/rules/otc.diarrhoea.v1.json",
+      "checksum": "sha256-ad882dc17826d30b5d2fd889d18dc63d2235f41239ac01a1dbd184c342fbdf44"
+    },
+    {
+      "id": "otc_constipation",
+      "name": "Functional constipation (OTC)",
+      "version": "1.0.0",
+      "path": "assets/rules/otc.constipation.v1.json",
+      "checksum": "sha256-508090806e685ca329b66b3b68ac10d622040581a4a6b6f13d7c759957c9c5c8"
+    }
+  ]
+}

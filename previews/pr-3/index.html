@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#eff4ff" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0a0c12" />
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var THEME_KEY = 'otcflow-theme';
+      var THEME_LOCK_KEY = 'otcflow-theme-lock';
+
+      function setTheme(theme) {
+        var normalized = theme === 'light' ? 'light' : 'dark';
+        root.classList.remove('theme-light', 'theme-dark', 'light', 'dark');
+        root.classList.add('theme-' + normalized, normalized);
+        root.dataset.theme = normalized;
+      }
+
+      function detectAutomaticTheme() {
+        var hour = new Date().getHours();
+        var isNight = hour >= 19 || hour < 7;
+        var prefersDark = false;
+        var prefersLight = false;
+
+        if (typeof window.matchMedia === 'function') {
+          try {
+            prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+          } catch (error) {
+            prefersDark = isNight;
+          }
+        }
+
+        if (prefersDark) {
+          return 'dark';
+        }
+
+        if (prefersLight) {
+          return 'light';
+        }
+
+        return isNight ? 'dark' : 'light';
+      }
+
+      var locked = false;
+      var storedTheme = null;
+
+      try {
+        locked = localStorage.getItem(THEME_LOCK_KEY) === 'true';
+        storedTheme = locked ? localStorage.getItem(THEME_KEY) : null;
+      } catch (error) {
+        locked = false;
+        storedTheme = null;
+      }
+
+      if (storedTheme !== 'light' && storedTheme !== 'dark') {
+        storedTheme = null;
+      }
+
+      setTheme(storedTheme || detectAutomaticTheme());
+      root.dataset.themeLock = locked ? 'true' : 'false';
+    })();
+  </script>
+  <link rel="icon" href="assets/favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="preload"
+    as="style"
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter:opsz,wght@14..32,400..700&display=swap"
+  />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter:opsz,wght@14..32,400..700&display=swap"
+  />
+  <link rel="stylesheet" href="assets/css/design.css" />
+  <link rel="stylesheet" href="assets/css/theme.css" />
+  <meta
+    name="description"
+    content="Browser based UK community pharmacy OTC decision support assistant with deterministic rule packs and audit ready documentation."
+  />
+  <meta property="og:title" content="UK Community Pharmacy OTC Decision Support Assistant" />
+  <meta
+    property="og:description"
+    content="Offline friendly single page app for Pharmacy First and high volume OTC consultations."
+  />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="assets/favicon.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="UK Community Pharmacy OTC Decision Support Assistant" />
+  <meta
+    name="twitter:description"
+    content="Offline first community pharmacy consultation assistant with rule pack driven decisions."
+  />
+  <meta name="twitter:image" content="assets/favicon.png" />
+  <title>UK Community Pharmacy OTC Decision Support Assistant</title>
+</head>
+<body>
+  <div class="page app-shell page-sheen">
+    <div id="sr-status" class="visually-hidden" aria-live="polite"></div>
+    <header class="hero app-hero surface-card motion-fade-in" aria-labelledby="hero-title">
+      <div class="wrapper surface-content stack stack--loose">
+        <div class="hero__top cluster cluster--end">
+          <div class="hero__chips chips" role="group" aria-label="Quick links">
+            <a class="chip chip--outline" href="#pathways">Pathways</a>
+            <a class="chip chip--outline" href="#intake">Intake</a>
+            <a class="chip chip--outline" href="#decision">Decision trace</a>
+            <a class="chip chip--outline" href="docs/feasibility.md">Feasibility</a>
+          </div>
+          <div class="theme-controls" role="group" aria-label="Color theme controls">
+            <button type="button" class="theme-toggle" id="theme-toggle" aria-pressed="true">
+              <span class="toggle-track" aria-hidden="true">
+                <span class="toggle-thumb"></span>
+              </span>
+              <span class="toggle-label">Dark mode</span>
+            </button>
+            <label class="theme-lock" for="theme-lock">
+              <input type="checkbox" id="theme-lock" />
+              <span class="theme-lock__label">Lock theme</span>
+            </label>
+          </div>
+        </div>
+        <div class="hero__body stack stack--tight">
+          <span class="hero__eyebrow">Live consultation tool</span>
+          <h1 id="hero-title">UK Community Pharmacy OTC Decision Support Assistant</h1>
+          <p class="hero__lede">
+            Deterministic Pharmacy First and OTC triage built for fast, auditable decisions. Everything runs in the browser so
+            no patient data leaves the pharmacy.
+          </p>
+          <div class="hero__meta">
+            <span class="hero__version">Rule packs v1.0.0</span>
+            <span aria-hidden="true" class="hero__meta-divider">·</span>
+            <span class="hero__timestamp" id="pack-timestamp">Loaded 2025-01-01</span>
+          </div>
+        </div>
+        <div class="hero__actions cluster">
+          <a class="btn btn-primary" href="#intake">Start consultation</a>
+          <a class="btn btn--secondary" href="#documentation">View documentation output</a>
+          <a class="btn btn--secondary" href="README.md">Implementation notes</a>
+        </div>
+        <dl class="hero__metrics kv kv--inline" aria-label="Runtime guarantees">
+          <div>
+            <dt>Runtime</dt>
+            <dd>Offline first SPA</dd>
+          </div>
+          <div>
+            <dt>Evaluation</dt>
+            <dd>Deterministic JSON rule packs</dd>
+          </div>
+          <div>
+            <dt>Audit</dt>
+            <dd>Traceable decision log</dd>
+          </div>
+        </dl>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <div class="wrapper app-grid" id="pathways">
+        <aside class="panel panel--pathways" aria-labelledby="pathways-heading">
+          <div class="panel__header">
+            <h2 class="panel__title" id="pathways-heading">Active rule packs</h2>
+            <p class="panel__subtitle">Select a pathway to load the relevant intake schema and decisions.</p>
+          </div>
+          <div class="panel__body" id="pathway-list" role="list"></div>
+        </aside>
+
+        <section class="panel panel--intake" id="intake" aria-labelledby="intake-heading">
+          <div class="panel__header">
+            <h2 class="panel__title" id="intake-heading">Consultation intake</h2>
+            <p class="panel__subtitle">
+              Capture structured information. Fields marked with <span aria-hidden="true">*</span>
+              <span class="visually-hidden">asterisk</span> are required before recommendations will unlock.
+            </p>
+          </div>
+          <div class="panel__body" id="intake-container" data-empty-message="Select a pathway to begin."></div>
+        </section>
+
+        <section class="panel panel--results" id="decision" aria-labelledby="decision-heading">
+          <div class="panel__header">
+            <h2 class="panel__title" id="decision-heading">Decision support</h2>
+            <p class="panel__subtitle">Review referrals, supply recommendations, and the audit trail.</p>
+          </div>
+          <div class="panel__body" id="results-container"></div>
+        </section>
+      </div>
+    </main>
+
+    <section class="wrapper panel panel--documentation" id="documentation" aria-labelledby="documentation-heading">
+      <div class="panel__header">
+        <h2 class="panel__title" id="documentation-heading">Documentation preview</h2>
+        <p class="panel__subtitle">
+          Export-ready consultation note including pathway metadata, decision trace, and safety netting statements.
+        </p>
+      </div>
+      <div class="panel__body" id="documentation-container">
+        <p class="muted">Run a consultation to generate structured documentation output.</p>
+      </div>
+    </section>
+
+    <footer class="spec-footer">
+      <div class="wrapper spec-footer__content">
+        <p>
+          Built as an offline first reference implementation for the UK Community Pharmacy OTC Decision Support Assistant.
+          Rule packs and dictionaries update through signed Git commits. No runtime backend is required.
+        </p>
+        <p class="spec-footer__owner">Document owner: Product and Lead Pharmacist</p>
+      </div>
+    </footer>
+  </div>
+
+  <script type="module" src="assets/js/otc/app.js"></script>
+</body>
+</html>

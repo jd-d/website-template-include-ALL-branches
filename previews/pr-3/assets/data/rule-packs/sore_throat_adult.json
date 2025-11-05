@@ -1,0 +1,385 @@
+{
+  "id": "sore_throat_adult",
+  "title": "Sore throat (FeverPAIN-guided)",
+  "pathway": "Pharmacy First England",
+  "version": "1.0.0",
+  "effective": "2025-01-01",
+  "presentation": "upper_respiratory",
+  "summary": "Calculates FeverPAIN score, highlights red flags, and recommends delayed or immediate supply.",
+  "intake": {
+    "defaults": {
+      "patient": { "sex": "unknown", "pregnant": "unknown" },
+      "presentation": "upper_respiratory",
+      "symptoms": {
+        "fever_24h": "unknown",
+        "purulence": "unknown",
+        "rapid_onset": "unknown",
+        "inflamed_tonsils": "unknown",
+        "cough_absent": "unknown",
+        "duration_days": null,
+        "pain_score": 5
+      },
+      "flags": {
+        "airway": "unknown",
+        "swallowing": "unknown",
+        "systemically_unwell": "unknown"
+      },
+      "history": {
+        "immunosuppressed": "unknown"
+      },
+      "meds_allergies": {
+        "penicillin_allergy": "unknown"
+      },
+      "notes": ""
+    },
+    "required": [
+      "patient.age",
+      "patient.sex",
+      "patient.pregnant",
+      "symptoms.fever_24h",
+      "symptoms.purulence",
+      "symptoms.rapid_onset",
+      "symptoms.inflamed_tonsils",
+      "symptoms.cough_absent",
+      "symptoms.duration_days",
+      "flags.airway",
+      "flags.swallowing",
+      "flags.systemically_unwell"
+    ],
+    "sections": [
+      {
+        "id": "patient",
+        "title": "Patient details",
+        "layout": "two-col",
+        "fields": [
+          {
+            "id": "age",
+            "label": "Age",
+            "type": "number",
+            "path": "patient.age",
+            "min": 0,
+            "max": 120,
+            "required": true,
+            "clarifier": "Record patient age in years."
+          },
+          {
+            "id": "sex",
+            "label": "Sex at birth",
+            "type": "select",
+            "path": "patient.sex",
+            "required": true,
+            "options": [
+              { "value": "female", "label": "Female" },
+              { "value": "male", "label": "Male" },
+              { "value": "intersex", "label": "Intersex" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          },
+          {
+            "id": "pregnant",
+            "label": "Pregnancy status",
+            "type": "tri-state",
+            "path": "patient.pregnant",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Pregnant" },
+              { "value": false, "label": "Not pregnant" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "symptoms",
+        "title": "FeverPAIN criteria",
+        "description": "Record FeverPAIN elements to calculate score.",
+        "layout": "two-col",
+        "fields": [
+          {
+            "id": "fever_24h",
+            "label": "Fever in the past 24 hours",
+            "type": "tri-state",
+            "path": "symptoms.fever_24h",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ],
+            "clarifier": "Confirm fever history."
+          },
+          {
+            "id": "purulence",
+            "label": "Pus on tonsils",
+            "type": "tri-state",
+            "path": "symptoms.purulence",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          },
+          {
+            "id": "rapid_onset",
+            "label": "Onset within 3 days",
+            "type": "tri-state",
+            "path": "symptoms.rapid_onset",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          },
+          {
+            "id": "inflamed_tonsils",
+            "label": "Severely inflamed tonsils",
+            "type": "tri-state",
+            "path": "symptoms.inflamed_tonsils",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          },
+          {
+            "id": "cough_absent",
+            "label": "Absence of cough or coryza",
+            "type": "tri-state",
+            "path": "symptoms.cough_absent",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          },
+          {
+            "id": "duration_days",
+            "label": "Duration in days",
+            "type": "number",
+            "path": "symptoms.duration_days",
+            "min": 0,
+            "max": 21,
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "flags",
+        "title": "Red flag screening",
+        "layout": "two-col",
+        "fields": [
+          {
+            "id": "airway",
+            "label": "Airway compromise (stridor, drooling)",
+            "type": "tri-state",
+            "path": "flags.airway",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ],
+            "clarifier": "Escalate if any airway compromise present."
+          },
+          {
+            "id": "swallowing",
+            "label": "Unable to swallow fluids",
+            "type": "tri-state",
+            "path": "flags.swallowing",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          },
+          {
+            "id": "systemically_unwell",
+            "label": "Systemically very unwell",
+            "type": "tri-state",
+            "path": "flags.systemically_unwell",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          },
+          {
+            "id": "immunosuppressed",
+            "label": "Immunosuppressed",
+            "type": "tri-state",
+            "path": "history.immunosuppressed",
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "notes",
+        "title": "Clinical notes",
+        "fields": [
+          {
+            "id": "notes",
+            "label": "Notes",
+            "type": "textarea",
+            "path": "notes"
+          }
+        ]
+      }
+    ]
+  },
+  "gates": [
+    {
+      "id": "age",
+      "description": "Refer children under 5 or adults over 65 for medical review.",
+      "condition": {
+        "any": [
+          { "lt": ["patient.age", 5] },
+          { "gt": ["patient.age", 65] }
+        ]
+      },
+      "outcome": {
+        "type": "refer",
+        "urgency": "routine_gp",
+        "reason": "Outside age range for community sore throat management."
+      }
+    },
+    {
+      "id": "pregnancy",
+      "description": "Pregnancy needs GP assessment for systemic infection.",
+      "condition": { "equals": ["patient.pregnant", true] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "routine_gp",
+        "reason": "Pregnancy recorded – refer to GP."
+      }
+    },
+    {
+      "id": "airway",
+      "description": "Airway compromise requires urgent same-day escalation.",
+      "condition": { "equals": ["flags.airway", true] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "emergency",
+        "reason": "Airway compromise suspected."
+      }
+    },
+    {
+      "id": "swallowing",
+      "description": "Inability to swallow warrants urgent referral.",
+      "condition": { "equals": ["flags.swallowing", true] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "urgent_gp",
+        "reason": "Unable to swallow fluids."
+      }
+    },
+    {
+      "id": "systemic",
+      "description": "Systemically unwell presentations require urgent review.",
+      "condition": { "equals": ["flags.systemically_unwell", true] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "urgent_gp",
+        "reason": "Systemically very unwell."
+      }
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "feverpain_high",
+      "title": "Immediate antibiotic supply",
+      "condition": {
+        "gte": ["derived.feverPainScore", 4]
+      },
+      "outcome": {
+        "type": "supply",
+        "product": "Phenoxymethylpenicillin 500 mg tablets",
+        "quantity": "20 tablets",
+        "directions": "Take two tablets twice daily for 5 days.",
+        "counselling": [
+          "Take on an empty stomach.",
+          "Complete the full course even if symptoms improve.",
+          "Seek urgent care if breathing difficulty, rash, or swelling develops."
+        ]
+      }
+    },
+    {
+      "id": "feverpain_medium",
+      "title": "Delayed antibiotic strategy",
+      "condition": {
+        "all": [
+          { "gte": ["derived.feverPainScore", 2] },
+          { "lt": ["derived.feverPainScore", 4] }
+        ]
+      },
+      "outcome": {
+        "type": "advice",
+        "advice": [
+          "Provide delayed prescription advice – start antibiotics if symptoms fail to settle after 48 hours or worsen.",
+          "Recommend ibuprofen or paracetamol for analgesia.",
+          "Encourage rest, hydration, and avoidance of smoking."
+        ]
+      }
+    },
+    {
+      "id": "feverpain_low",
+      "title": "Self-care",
+      "condition": {
+        "lt": ["derived.feverPainScore", 2]
+      },
+      "outcome": {
+        "type": "advice",
+        "advice": [
+          "Explain that bacterial infection is unlikely – offer symptomatic relief.",
+          "Recommend salt water gargles, lozenges, and analgesia as required.",
+          "Advise to seek review if symptoms persist beyond one week or worsen."
+        ]
+      }
+    }
+  ],
+  "safetyNetting": [
+    "Seek urgent medical care for breathing difficulty, drooling, or severe neck stiffness.",
+    "Return if symptoms worsen rapidly or do not improve within one week.",
+    "Access emergency services if signs of sepsis develop (confusion, mottled skin, or rapid breathing)."
+  ],
+  "documentation": {
+    "summary": "FeverPAIN-guided Pharmacy First sore throat consultation.",
+    "sections": [
+      {
+        "title": "Assessment",
+        "template": [
+          "Patient age {{patient.age}} years, FeverPAIN score {{derived.feverPainScore}}.",
+          "Criteria recorded: {{symptomSummary}}.",
+          "Red flag screen: {{redFlagSummary}}."
+        ]
+      },
+      {
+        "title": "Plan",
+        "template": [
+          "Decision outcome: {{decisionSummary}}."
+        ]
+      },
+      {
+        "title": "Safety netting",
+        "template": [
+          "Discussed: {{safetyNettingList}}."
+        ]
+      },
+      {
+        "title": "Notes",
+        "template": [
+          "Additional notes: {{notes}}"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,551 @@
+{
+  "id": "uti_female_16_64",
+  "title": "Uncomplicated UTI (Female 16-64)",
+  "pathway": "Pharmacy First England",
+  "version": "1.0.0",
+  "effective": "2025-01-01",
+  "presentation": "urinary_symptoms",
+  "summary": "Assess urinary symptoms and supply Nitrofurantoin MR when eligibility criteria are satisfied.",
+  "intake": {
+    "defaults": {
+      "patient": { "sex": "female", "pregnant": "unknown" },
+      "presentation": "urinary_symptoms",
+      "symptoms": {
+        "dysuria": "unknown",
+        "frequency": "unknown",
+        "urgency": "unknown",
+        "haematuria": "unknown",
+        "vaginal_discharge": "unknown",
+        "duration_days": null
+      },
+      "history": {
+        "recurrent_uti": "unknown",
+        "diabetes": "unknown",
+        "renal_impairment": "unknown",
+        "catheter": "unknown",
+        "immunosuppressed": "unknown"
+      },
+      "flags": {
+        "fever": "unknown",
+        "flank_pain": "unknown",
+        "systemically_unwell": "unknown"
+      },
+      "meds_allergies": {
+        "penicillin_allergy": "unknown",
+        "current_meds": ""
+      },
+      "notes": ""
+    },
+    "required": [
+      "patient.age",
+      "patient.sex",
+      "patient.pregnant",
+      "symptoms.dysuria",
+      "symptoms.frequency",
+      "symptoms.urgency",
+      "symptoms.duration_days",
+      "history.recurrent_uti",
+      "history.renal_impairment",
+      "history.catheter",
+      "history.immunosuppressed",
+      "flags.fever",
+      "flags.flank_pain",
+      "flags.systemically_unwell"
+    ],
+    "sections": [
+      {
+        "id": "patient",
+        "title": "Patient details",
+        "description": "Record age, sex at birth, and pregnancy status for the consultation.",
+        "layout": "two-col",
+        "fields": [
+          {
+            "id": "age",
+            "label": "Age",
+            "type": "number",
+            "path": "patient.age",
+            "min": 0,
+            "max": 120,
+            "required": true,
+            "clarifier": "Document the patient's age in years."
+          },
+          {
+            "id": "sex",
+            "label": "Sex at birth",
+            "type": "select",
+            "path": "patient.sex",
+            "required": true,
+            "options": [
+              { "value": "female", "label": "Female" },
+              { "value": "male", "label": "Male" },
+              { "value": "intersex", "label": "Intersex" },
+              { "value": "unknown", "label": "Unknown" }
+            ],
+            "clarifier": "Confirm sex at birth to ensure correct pathway selection."
+          },
+          {
+            "id": "pregnant",
+            "label": "Pregnancy status",
+            "type": "tri-state",
+            "path": "patient.pregnant",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Pregnant" },
+              { "value": false, "label": "Not pregnant" },
+              { "value": "unknown", "label": "Unknown" }
+            ],
+            "clarifier": "Record pregnancy status or mark unknown if not established."
+          }
+        ]
+      },
+      {
+        "id": "symptoms",
+        "title": "Presenting symptoms",
+        "description": "Confirm positive symptoms for urinary tract infection.",
+        "layout": "two-col",
+        "fields": [
+          {
+            "id": "dysuria",
+            "label": "Dysuria (pain passing urine)",
+            "type": "tri-state",
+            "path": "symptoms.dysuria",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ],
+            "clarifier": "Confirm whether dysuria is present."
+          },
+          {
+            "id": "frequency",
+            "label": "Increased urinary frequency",
+            "type": "tri-state",
+            "path": "symptoms.frequency",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ],
+            "clarifier": "Record if urinary frequency is reported."
+          },
+          {
+            "id": "urgency",
+            "label": "Urgency",
+            "type": "tri-state",
+            "path": "symptoms.urgency",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ],
+            "clarifier": "Record urgency symptoms."
+          },
+          {
+            "id": "haematuria",
+            "label": "Visible haematuria",
+            "type": "tri-state",
+            "path": "symptoms.haematuria",
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ],
+            "clarifier": "Record if blood in urine is reported."
+          },
+          {
+            "id": "vaginal_discharge",
+            "label": "Vaginal discharge",
+            "type": "tri-state",
+            "path": "symptoms.vaginal_discharge",
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ],
+            "clarifier": "Record the presence of vaginal discharge."
+          },
+          {
+            "id": "duration_days",
+            "label": "Duration in days",
+            "type": "number",
+            "path": "symptoms.duration_days",
+            "min": 0,
+            "max": 30,
+            "required": true,
+            "clarifier": "Capture duration of symptoms in days."
+          }
+        ]
+      },
+      {
+        "id": "flags",
+        "title": "Red flag screening",
+        "description": "Capture red flag findings that mandate referral.",
+        "layout": "two-col",
+        "fields": [
+          {
+            "id": "fever",
+            "label": "Fever or systemic features",
+            "type": "tri-state",
+            "path": "flags.fever",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ],
+            "clarifier": "Confirm if the patient is febrile or systemically unwell."
+          },
+          {
+            "id": "flank_pain",
+            "label": "Flank or loin pain",
+            "type": "tri-state",
+            "path": "flags.flank_pain",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ],
+            "clarifier": "Record presence of flank or loin pain."
+          },
+          {
+            "id": "systemically_unwell",
+            "label": "Systemically unwell",
+            "type": "tri-state",
+            "path": "flags.systemically_unwell",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ],
+            "clarifier": "Assess for rigors, vomiting, or confusion."
+          }
+        ]
+      },
+      {
+        "id": "history",
+        "title": "Relevant medical history",
+        "description": "Identify comorbidities or exclusions.",
+        "layout": "two-col",
+        "fields": [
+          {
+            "id": "recurrent_uti",
+            "label": "Recurrent UTI (≥2 in 6 months or ≥3 in 12 months)",
+            "type": "tri-state",
+            "path": "history.recurrent_uti",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ],
+            "clarifier": "Confirm recurrence history."
+          },
+          {
+            "id": "diabetes",
+            "label": "Diabetes",
+            "type": "tri-state",
+            "path": "history.diabetes",
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          },
+          {
+            "id": "renal_impairment",
+            "label": "Renal impairment or eGFR &lt; 45",
+            "type": "tri-state",
+            "path": "history.renal_impairment",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ],
+            "clarifier": "Check for chronic kidney disease or eGFR restrictions."
+          },
+          {
+            "id": "catheter",
+            "label": "Indwelling catheter",
+            "type": "tri-state",
+            "path": "history.catheter",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ],
+            "clarifier": "Record catheter use."
+          },
+          {
+            "id": "immunosuppressed",
+            "label": "Immunosuppressed",
+            "type": "tri-state",
+            "path": "history.immunosuppressed",
+            "required": true,
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ],
+            "clarifier": "Includes chemotherapy, high dose steroids, or HIV."
+          }
+        ]
+      },
+      {
+        "id": "meds",
+        "title": "Medicines and allergies",
+        "layout": "two-col",
+        "fields": [
+          {
+            "id": "penicillin_allergy",
+            "label": "Penicillin allergy",
+            "type": "tri-state",
+            "path": "meds_allergies.penicillin_allergy",
+            "options": [
+              { "value": true, "label": "Yes" },
+              { "value": false, "label": "No" },
+              { "value": "unknown", "label": "Unknown" }
+            ]
+          },
+          {
+            "id": "current_meds",
+            "label": "Current regular medicines",
+            "type": "textarea",
+            "path": "meds_allergies.current_meds"
+          }
+        ]
+      },
+      {
+        "id": "notes",
+        "title": "Clinical notes",
+        "fields": [
+          {
+            "id": "notes",
+            "label": "Consultation notes",
+            "type": "textarea",
+            "path": "notes",
+            "clarifier": "Document additional observations, dipstick results, or safeguarding information."
+          }
+        ]
+      }
+    ]
+  },
+  "gates": [
+    {
+      "id": "age_range",
+      "description": "Age must be between 16 and 64 inclusive.",
+      "condition": { "notBetween": ["patient.age", 16, 64] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "pharmacist_same_day",
+        "reason": "Outside age range for Pharmacy First uncomplicated UTI pathway."
+      }
+    },
+    {
+      "id": "sex_check",
+      "description": "Patient must be female.",
+      "condition": { "notEquals": ["patient.sex", "female"] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "pharmacist_same_day",
+        "reason": "Pathway is limited to females aged 16 to 64."
+      }
+    },
+    {
+      "id": "pregnancy",
+      "description": "Pregnancy requires medical referral.",
+      "condition": { "equals": ["patient.pregnant", true] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "urgent_gp",
+        "reason": "Pregnancy present – refer to prescribing clinician."
+      }
+    },
+    {
+      "id": "fever",
+      "description": "Systemic features require urgent referral.",
+      "condition": { "equals": ["flags.fever", true] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "urgent_gp",
+        "reason": "Fever or systemic illness reported."
+      }
+    },
+    {
+      "id": "flank_pain",
+      "description": "Flank or loin pain suggests upper UTI.",
+      "condition": { "equals": ["flags.flank_pain", true] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "urgent_gp",
+        "reason": "Flank pain present – assess for pyelonephritis."
+      }
+    },
+    {
+      "id": "systemic",
+      "description": "Systemically unwell presentations require medical assessment.",
+      "condition": { "equals": ["flags.systemically_unwell", true] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "urgent_gp",
+        "reason": "Patient is systemically unwell."
+      }
+    },
+    {
+      "id": "vaginal_discharge",
+      "description": "Vaginal discharge needs alternative diagnosis.",
+      "condition": { "equals": ["symptoms.vaginal_discharge", true] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "routine_gp",
+        "reason": "Vaginal discharge present – consider STI or gynaecological assessment."
+      }
+    },
+    {
+      "id": "recurrent",
+      "description": "Recurrent infections outside PGD scope.",
+      "condition": { "equals": ["history.recurrent_uti", true] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "routine_gp",
+        "reason": "Recurrent UTI history – arrange GP review."
+      }
+    },
+    {
+      "id": "renal",
+      "description": "Renal impairment excludes Nitrofurantoin PGD.",
+      "condition": { "equals": ["history.renal_impairment", true] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "routine_gp",
+        "reason": "Renal impairment present – Nitrofurantoin contraindicated."
+      }
+    },
+    {
+      "id": "catheter",
+      "description": "Indwelling catheter requires specialist care.",
+      "condition": { "equals": ["history.catheter", true] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "urgent_gp",
+        "reason": "Catheter in situ – refer for medical management."
+      }
+    },
+    {
+      "id": "immunosuppressed",
+      "description": "Immunosuppressed patients require GP assessment.",
+      "condition": { "equals": ["history.immunosuppressed", true] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "routine_gp",
+        "reason": "Immunosuppressed patient – refer to GP."
+      }
+    },
+    {
+      "id": "duration",
+      "description": "Symptoms longer than 7 days require GP review.",
+      "condition": { "gt": ["symptoms.duration_days", 7] },
+      "outcome": {
+        "type": "refer",
+        "urgency": "routine_gp",
+        "reason": "Symptoms lasting more than 7 days."
+      }
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "uti_supply",
+      "title": "Supply Nitrofurantoin MR 100 mg",
+      "condition": {
+        "all": [
+          { "equals": ["symptoms.dysuria", true] },
+          {
+            "any": [
+              { "equals": ["symptoms.frequency", true] },
+              { "equals": ["symptoms.urgency", true] }
+            ]
+          },
+          { "lte": ["symptoms.duration_days", 7] },
+          { "equals": ["history.recurrent_uti", false] },
+          { "equals": ["history.renal_impairment", false] },
+          { "equals": ["history.catheter", false] },
+          { "equals": ["history.immunosuppressed", false] },
+          { "equals": ["flags.fever", false] },
+          { "equals": ["flags.flank_pain", false] },
+          { "equals": ["flags.systemically_unwell", false] }
+        ]
+      },
+      "outcome": {
+        "type": "supply",
+        "product": "Nitrofurantoin modified-release 100 mg capsules",
+        "quantity": "14 capsules",
+        "directions": "Take one capsule twice daily for 7 days with food.",
+        "counselling": [
+          "Advise to take with or after food and to complete the full course.",
+          "Warn to seek urgent care if fever, flank pain, or systemic symptoms develop.",
+          "Encourage adequate fluid intake and avoidance of self-prescribed alkalising sachets during treatment."
+        ]
+      }
+    },
+    {
+      "id": "uti_supportive",
+      "title": "Supportive self-care and analgesia",
+      "condition": {
+        "all": [
+          { "equals": ["symptoms.dysuria", true] },
+          { "lte": ["symptoms.duration_days", 7] }
+        ]
+      },
+      "outcome": {
+        "type": "advice",
+        "advice": [
+          "Encourage regular hydration and consider short-term analgesia such as paracetamol.",
+          "Discuss avoidance of bladder irritants (caffeine, alcohol) until resolved.",
+          "Advise to contact the pharmacy or GP if symptoms persist beyond 48 hours or worsen."
+        ]
+      }
+    }
+  ],
+  "safetyNetting": [
+    "Seek urgent medical care if fever, loin pain, or vomiting develops.",
+    "Return if symptoms do not improve within 48 hours of starting treatment.",
+    "Attend A&E if signs of sepsis occur such as confusion or uncontrollable shivering."
+  ],
+  "documentation": {
+    "summary": "Pharmacy First consultation for uncomplicated lower UTI in a female aged 16-64.",
+    "sections": [
+      {
+        "title": "Assessment",
+        "template": [
+          "Presentation: {{patient.age}} year old {{patient.sex}} with urinary symptoms for {{symptoms.duration_days}} days.",
+          "Symptoms recorded: {{symptomSummary}}.",
+          "Red flag screen: {{redFlagSummary}}."
+        ]
+      },
+      {
+        "title": "Decision",
+        "template": [
+          "Decision outcome: {{decisionSummary}}."
+        ]
+      },
+      {
+        "title": "Safety netting",
+        "template": [
+          "Safety netting given: {{safetyNettingList}}."
+        ]
+      },
+      {
+        "title": "Additional notes",
+        "template": [
+          "Clinician notes: {{notes}}"
+        ]
+      }
+    ]
+  }
+}

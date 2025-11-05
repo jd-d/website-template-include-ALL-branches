@@ -1,0 +1,247 @@
+{
+  "meta": {
+    "id": "acute_sinusitis",
+    "name": "Acute sinusitis",
+    "version": "1.0.0",
+    "effectiveFrom": "2025-03-01",
+    "lastReviewed": "2025-03-20",
+    "jurisdiction": "England",
+    "service": "Pharmacy First"
+  },
+  "complaint": {
+    "id": "sinus_congestion",
+    "label": "Sinus congestion"
+  },
+  "description": "Assessment pathway for acute sinusitis symptoms aligned to Pharmacy First England service guidance.",
+  "inclusion": [
+    "Patients aged 12 years and over with acute nasal congestion, discharge, or facial pain.",
+    "Symptoms present for 28 days or fewer without signs of severe systemic illness.",
+    "Able to use intranasal corticosteroids or delayed oral antibiotics if indicated."
+  ],
+  "exclusion": [
+    "Orbital complications (visual disturbance, periorbital cellulitis).",
+    "Severe systemic upset, meningitis, or intracranial complications.",
+    "Known chronic rhinosinusitis requiring ENT follow-up.",
+    "Immediate hospital referral criteria met."
+  ],
+  "safetyNetting": [
+    "Seek urgent care if swelling around the eye worsens or vision changes occur.",
+    "Arrange GP review if symptoms persist beyond 3 weeks despite treatment.",
+    "Return for reassessment if fever develops or pain becomes severe."
+  ],
+  "sections": [
+    {
+      "id": "red_flags",
+      "title": "Red flags",
+      "questions": [
+        { "id": "orbitalSymptoms", "type": "boolean", "label": "Periorbital swelling or visual disturbance", "required": false, "flagType": "red" },
+        { "id": "severeSystemic", "type": "boolean", "label": "Systemically very unwell", "required": false, "flagType": "red" },
+        { "id": "immunocompromised", "type": "boolean", "label": "Known immunocompromise", "required": false }
+      ]
+    },
+    {
+      "id": "core_symptoms",
+      "title": "Core sinusitis symptoms",
+      "questions": [
+        { "id": "purulentDischarge", "type": "boolean", "label": "Purulent nasal discharge", "required": true },
+        { "id": "facialPain", "type": "boolean", "label": "Facial pain or pressure", "required": true },
+        { "id": "nasalObstruction", "type": "boolean", "label": "Nasal obstruction", "required": true },
+        { "id": "fever", "type": "boolean", "label": "Fever ≥38°C", "required": false },
+        { "id": "doubleSickening", "type": "boolean", "label": "Symptoms worsened after initial improvement", "required": false }
+      ]
+    },
+    {
+      "id": "history",
+      "title": "History and risk factors",
+      "questions": [
+        {
+          "id": "durationDays",
+          "type": "number",
+          "label": "Symptom duration (days)",
+          "min": 0,
+          "max": 60,
+          "required": true
+        },
+        { "id": "recentAntibiotic", "type": "boolean", "label": "Antibiotic use in last 30 days", "required": false },
+        {
+          "id": "antibioticAllergy",
+          "type": "select",
+          "label": "Penicillin allergy",
+          "options": [
+            { "value": "no", "label": "No" },
+            { "value": "yes", "label": "Yes" },
+            { "value": "unknown", "label": "Unknown" }
+          ],
+          "required": false
+        }
+      ]
+    }
+  ],
+  "intake": {
+    "required": {
+      "patient": ["age"],
+      "answers": ["purulentDischarge", "facialPain", "nasalObstruction", "durationDays"]
+    }
+  },
+  "logic": {
+    "derived": [
+      {
+        "id": "symptomCount",
+        "expression": {
+          "+": [
+            { "if": [ { "==": [ { "var": "answers.purulentDischarge" }, true ] }, 1, 0 ] },
+            { "if": [ { "==": [ { "var": "answers.facialPain" }, true ] }, 1, 0 ] },
+            { "if": [ { "==": [ { "var": "answers.nasalObstruction" }, true ] }, 1, 0 ] }
+          ]
+        }
+      },
+      {
+        "id": "prolongedIllness",
+        "expression": { ">=": [ { "var": "answers.durationDays" }, 10 ] }
+      }
+    ],
+    "checks": [
+      {
+        "id": "age_range",
+        "description": "Age 12 years or older",
+        "expression": { ">=": [ { "var": "patient.age" }, 12 ] },
+        "pass": { "status": "pass", "label": "Age within Pharmacy First sinusitis range." },
+        "fail": {
+          "status": "fail",
+          "label": "Pharmacy First sinusitis service is for age ≥12 years.",
+          "result": {
+            "outcome": "refer",
+            "urgency": "routine",
+            "headline": "Refer - patient under 12 years",
+            "summary": "Outside scope of Pharmacy First acute sinusitis pathway.",
+            "actions": ["Arrange GP assessment for under 12s with sinusitis symptoms."]
+          }
+        }
+      },
+      {
+        "id": "duration_limit",
+        "description": "Symptoms 28 days or fewer",
+        "expression": {
+          "or": [
+            { "!": { "var": "answers.durationDays" } },
+            { "<=": [ { "var": "answers.durationDays" }, 28 ] }
+          ]
+        },
+        "pass": { "status": "pass", "label": "Duration recorded as {{answers.durationDays}} day(s)." },
+        "fail": {
+          "status": "fail",
+          "label": "Symptoms exceed 28 days - likely chronic rhinosinusitis.",
+          "result": {
+            "outcome": "refer",
+            "urgency": "routine",
+            "headline": "Refer - chronic symptom duration",
+            "summary": "Persistent symptoms beyond 4 weeks require GP review.",
+            "actions": ["Arrange GP follow-up for chronic sinus symptoms."]
+          }
+        }
+      }
+    ],
+    "advice": [
+      {
+        "id": "recent_antibiotic",
+        "expression": { "==": [ { "var": "answers.recentAntibiotic" }, true ] },
+        "warnings": ["Recent antibiotics - check resistance risk before supply."],
+        "trace": { "status": "warn", "label": "Antibiotics used in last 30 days." }
+      },
+      {
+        "id": "allergy_unknown",
+        "expression": { "==": [ { "var": "answers.antibioticAllergy" }, null ] },
+        "warnings": ["Confirm penicillin allergy status before prescribing."],
+        "trace": { "status": "warn", "label": "Penicillin allergy status unknown." }
+      }
+    ],
+    "outcomes": [
+      {
+        "id": "urgent_red_flags",
+        "description": "Urgent red flag symptoms",
+        "expression": {
+          "or": [
+            { "==": [ { "var": "answers.orbitalSymptoms" }, true ] },
+            { "==": [ { "var": "answers.severeSystemic" }, true ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "fail", "label": "Red flag symptom identified - urgent referral required." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "urgent",
+          "headline": "Urgent referral - suspected orbital or systemic complication",
+          "summary": "Escalate immediately due to red flag sinusitis features.",
+          "actions": ["Arrange same-day assessment via 999/urgent care as appropriate."],
+          "referral": {
+            "destination": "Urgent care / A&E",
+            "reason": "Orbital or systemic complication suspected"
+          }
+        }
+      },
+      {
+        "id": "immunocompromise",
+        "description": "Immunocompromise present",
+        "expression": { "==": [ { "var": "answers.immunocompromised" }, true ] },
+        "trace": {
+          "pass": { "status": "fail", "label": "Immunocompromised patient - refer to GP." }
+        },
+        "result": {
+          "outcome": "refer",
+          "urgency": "routine",
+          "headline": "Refer - immunocompromise is an exclusion",
+          "summary": "Requires GP review due to higher risk of complications.",
+          "actions": ["Arrange GP follow-up and provide self-care advice pending review."],
+          "referral": {
+            "destination": "GP",
+            "reason": "Immunocompromised patient"
+          }
+        }
+      },
+      {
+        "id": "consider_delayed_antibiotic",
+        "description": "Prolonged or double sickening",
+        "expression": {
+          "or": [
+            { "var": "derived.prolongedIllness" },
+            { "==": [ { "var": "answers.doubleSickening" }, true ] }
+          ]
+        },
+        "trace": {
+          "pass": { "status": "warn", "label": "Symptoms prolonged or double sickening - consider delayed antibiotic." }
+        },
+        "result": {
+          "outcome": "advice",
+          "urgency": "routine",
+          "headline": "Consider delayed antibiotic - prolonged course",
+          "summary": "Discuss issuing a delayed antibiotic if symptoms fail to improve in 48 hours.",
+          "actions": [
+            "Offer a delayed prescription for Doxycycline 100 mg once daily for 7 days if no allergy.",
+            "Reinforce nasal saline irrigation and analgesia while monitoring symptoms.",
+            "Advise patient to start antibiotic only if symptoms persist or worsen after 48 hours."
+          ]
+        }
+      }
+    ],
+    "default": {
+      "trace": { "status": "pass", "label": "Criteria met for Pharmacy First supply." },
+      "result": {
+        "outcome": "supply",
+        "urgency": "routine",
+        "headline": "Supply mometasone nasal spray for 14 days",
+        "summary": "Patient meets criteria for symptomatic management with intranasal corticosteroid.",
+        "actions": [
+          "Supply Mometasone furoate 50 micrograms nasal spray two sprays per nostril once daily for 14 days.",
+          "Advise regular saline irrigation and oral analgesia (paracetamol/ibuprofen if suitable).",
+          "Provide written safety-netting covering red flag escalation."
+        ],
+        "supply": {
+          "product": "Mometasone furoate 50 micrograms/dose nasal spray",
+          "dosage": "Two sprays into each nostril once daily for 14 days",
+          "notes": "Advise gentle nose blowing before use and prime spray prior to first dose."
+        }
+      }
+    }
+  }
+}
